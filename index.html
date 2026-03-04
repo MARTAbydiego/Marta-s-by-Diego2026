@@ -42,8 +42,6 @@
         .cal-day.active-day { background: var(--rosa); color: white; }
         .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .btn-google { background: #4285F4; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 10px; width: 100%; }
-        .btn-import { background: #fbbc05; color: #000; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 5px; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -75,12 +73,7 @@
         <div class="grid-dashboard">
             <div class="card-stats" onclick="showPage('clientes')"><h3>Clientes</h3><div class="value" id="d-cli">0</div><i class="fas fa-user-heart"></i></div>
             <div class="card-stats"><h3>Horas Ocupadas</h3><div class="value" id="d-hor">0.0h</div><i class="fas fa-clock"></i></div>
-            <div class="card-stats" onclick="showPage('marcacoes')">
-                <h3>Vagas Livres</h3>
-                <div class="value" id="d-vag">0.0h</div>
-                <button id="auth_button" class="btn-google" onclick="handleAuthClick()">Sincronizar Google Calendar</button>
-                <button id="import_button" class="btn-import" onclick="importarCalendarioTodo()"><i class="fas fa-sync"></i> Importar TODO o Calendário</button>
-            </div>
+            <div class="card-stats" onclick="showPage('marcacoes')"><h3>Vagas Livres</h3><div class="value" id="d-vag">0.0h</div><i class="fas fa-plus-circle"></i></div>
         </div>
         <div class="box" style="max-width: 400px; margin: auto;">
             <canvas id="chartLotacao"></canvas>
@@ -172,108 +165,6 @@
 </div>
 
 <script>
-    // --- CHAVES DAS TUAS FOTOS ---
-    const CLIENT_ID = '870948790518-fsqb8ka4nb2nmt9ko7ggbvtjco221cnu.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyAqckvfoXzn_2xCNk47Xb93QwteX7REqhs';
-    const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
-    const SCOPES = "https://www.googleapis.com/auth/calendar.events";
-
-    let tokenClient;
-    let gapiInited = false;
-
-    function gapiLoaded() { gapi.load('client', async () => { await gapi.client.init({apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC]}); gapiInited = true; }); }
-    function gisLoaded() { tokenClient = google.accounts.oauth2.initTokenClient({client_id: CLIENT_ID, scope: SCOPES, callback: ''}); }
-
-    function handleAuthClick() {
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) throw (resp);
-            document.getElementById('auth_button').innerText = "✅ Google Sincronizado";
-            document.getElementById('auth_button').style.background = "#28a745";
-        };
-        tokenClient.requestAccessToken({prompt: 'consent'});
-    }
-
-    async function addEventToGoogle(nome, data, duracao, servico) {
-        if (!gapi.client.getToken()) return;
-        const start = new Date(data);
-        const end = new Date(start.getTime() + (duracao * 60 * 60 * 1000));
-        const event = {
-            'summary': `Marta Pro: ${nome}`,
-            'description': `Serviço: ${servico}`,
-            'start': { 'dateTime': start.toISOString(), 'timeZone': 'Europe/Lisbon' },
-            'end': { 'dateTime': end.toISOString(), 'timeZone': 'Europe/Lisbon' }
-        };
-        try { await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': event }); } 
-        catch (err) { console.error("Erro Google", err); }
-    }
-
-    // --- NOVA FUNÇÃO: IMPORTAÇÃO TOTAL DO CALENDÁRIO ---
-    async function importarCalendarioTodo() {
-        if (!gapi.client.getToken()) {
-            alert("Clica primeiro em 'Sincronizar Google Calendar'!");
-            return;
-        }
-
-        try {
-            document.getElementById('import_button').innerText = "⏳ A ler...";
-            
-            const response = await gapi.client.calendar.events.list({
-                'calendarId': 'primary',
-                'showDeleted': false,
-                'singleEvents': true,
-                'maxResults': 2500, // Limite alto para ler tudo
-                'orderBy': 'startTime',
-            });
-
-            const events = response.result.items;
-            if (!events || events.length == 0) {
-                alert("Nenhum evento encontrado no Google Calendar.");
-                return;
-            }
-
-            let novos = 0;
-            events.forEach(event => {
-                const titulo = event.summary || "Importado";
-                const dataRaw = event.start.dateTime || event.start.date;
-                const dataFormatada = dataRaw.substring(0, 16);
-                
-                // Evitar duplicados (mesma data e mesmo nome)
-                const existe = db.marcacoes.some(m => m.data === dataFormatada && m.cliente === titulo);
-
-                if (!existe) {
-                    // Tenta identificar o serviço pelo nome do evento para preencher preço/duração
-                    const sEnc = db.servicos.find(s => titulo.toLowerCase().includes(s.nome.toLowerCase()));
-                    const preco = sEnc ? sEnc.preco : 0;
-                    const dur = sEnc ? sEnc.duracao : 1;
-                    const ts = Date.now() + Math.floor(Math.random() * 500);
-
-                    db.marcacoes.push({
-                        id: ts, cliente: titulo, servico: sEnc ? sEnc.nome : "Google Import",
-                        data: dataFormatada, duracao: dur, valor: preco / 2, realizado: false, tipo: 'Restante'
-                    });
-                    db.marcacoes.push({
-                        id: ts + 1, cliente: titulo, servico: "Caução (Auto)",
-                        data: dataFormatada, duracao: 0, valor: preco / 2, realizado: false, tipo: 'Caução'
-                    });
-                    novos++;
-                }
-            });
-
-            if (novos > 0) {
-                save();
-                alert(`Importação concluída! ${novos} novos eventos adicionados.`);
-            } else {
-                alert("O site já está sincronizado com todos os eventos do Google.");
-            }
-            document.getElementById('import_button').innerHTML = '<i class="fas fa-sync"></i> Importar TODO o Calendário';
-        } catch (err) {
-            console.error(err);
-            alert("Erro na importação.");
-            document.getElementById('import_button').innerHTML = '<i class="fas fa-sync"></i> Erro ao Importar';
-        }
-    }
-
-    // --- FIREBASE E LÓGICA ORIGINAL ---
     const firebaseConfig = {
       apiKey: "AIzaSyCW-hHL5nlL58lULOfGYV0rzKfoJFVK3Xw",
       authDomain: "marta-pro.firebaseapp.com",
@@ -305,7 +196,9 @@
         if(document.getElementById('passInput').value === "marta2026") { 
             document.getElementById('login-screen').style.display = 'none'; 
             init(); 
-        } else { alert("Senha incorreta"); }
+        } else {
+            alert("Senha incorreta");
+        }
     }
 
     function save() { database.ref('/').set(db); }
@@ -336,24 +229,27 @@
         const duracaoNova = parseFloat(document.getElementById('m-duracao').value) || 0;
         if(!dataInput || duracaoNova < 0) return alert("Preencha data e duração!");
         
-        const sName = document.getElementById('m-servico').value;
-        const s = db.servicos.find(x => x.nome === sName);
+        const s = db.servicos.find(x => x.nome === document.getElementById('m-servico').value);
         const valorTotal = s ? s.preco : 0;
         const metade = valorTotal / 2;
         const nomeCli = document.getElementById('m-cliente').value;
         const timestamp = Date.now();
 
-        db.marcacoes.push({ id: timestamp, cliente: nomeCli, servico: sName, data: dataInput, duracao: duracaoNova, valor: metade, realizado: false, tipo: 'Restante' });
+        // Registo do Restante (Com duração para o gráfico)
+        db.marcacoes.push({ id: timestamp, cliente: nomeCli, servico: document.getElementById('m-servico').value, data: dataInput, duracao: duracaoNova, valor: metade, realizado: false, tipo: 'Restante' });
+        // Registo da Caução (Duração 0 para não duplicar no gráfico)
         db.marcacoes.push({ id: timestamp + 1, cliente: nomeCli, servico: "Caução", data: dataInput, duracao: 0, valor: metade, realizado: false, tipo: 'Caução' });
         
         save();
-        addEventToGoogle(nomeCli, dataInput, duracaoNova, sName);
-        alert("Agendamento guardado e enviado para o Google!");
+        alert("Agendamento guardado!");
     }
 
     function confirmarServico(id) {
         let m = db.marcacoes.find(x => x.id === id);
-        if(m) { m.realizado = true; m.dataConfirmacao = new Date().toISOString(); }
+        if(m) { 
+            m.realizado = true; 
+            m.dataConfirmacao = new Date().toISOString(); 
+        }
         save();
     }
 
@@ -399,12 +295,14 @@
         const anoAtual = new Date().getFullYear().toString();
         let tM = 0; let tA = 0;
         
+        // Pendentes
         document.querySelector('#t-pen tbody').innerHTML = db.marcacoes.filter(m => !m.realizado).map(m => {
             const isC = m.tipo === 'Caução';
             return `<tr><td>${m.data.split('T')[0]}</td><td>${m.cliente} <span class="${isC?'tag-caucao':''}">${isC?'(CAUÇÃO)':'(RESTANTE)'}</span></td><td>${Number(m.valor).toFixed(2)}€</td>
             <td><button onclick="confirmarServico(${m.id})" class="btn-ok">✅ Recebido</button><button onclick="removerMarcacao(${m.id})" class="btn-del" style="margin-left:10px;"><i class="fas fa-times-circle"></i></button></td></tr>`;
         }).join('');
 
+        // Histórico
         const realizados = db.marcacoes.filter(m => m.realizado);
         document.querySelector('#t-his tbody').innerHTML = realizados.sort((a,b) => new Date(b.dataConfirmacao || b.data) - new Date(a.dataConfirmacao || a.data)).map(m => {
             return `<tr><td>${(m.dataConfirmacao || m.data).split('T')[0]}</td><td>${m.cliente} - ${m.tipo}</td><td>${Number(m.valor).toFixed(2)}€</td>
@@ -427,7 +325,12 @@
         myChart = new Chart(ctx, {
             type: 'doughnut',
             data: { labels: ['Ocupado', 'Livre'], datasets: [{ data: [o, Math.max(0, t - o)], backgroundColor: ['#ff4d79', '#fff0f3'], borderWidth: 0 }] },
-            options: { plugins: { title: { display: true, text: p + '% Ocupado', color: '#ff4d79', font: { size: 18, weight: 'bold' } }, legend: { position: 'bottom' } } }
+            options: { 
+                plugins: { 
+                    title: { display: true, text: p + '% Ocupado', color: '#ff4d79', font: { size: 18, weight: 'bold' } },
+                    legend: { position: 'bottom' }
+                } 
+            }
         });
     }
 
@@ -443,9 +346,5 @@
         updateUI();
     }
 </script>
-
-<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-
 </body>
 </html>
