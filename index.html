@@ -58,12 +58,12 @@
 <header>
     <div class="logo"><i class="fas fa-magic"></i> Marta Pro</div>
     <nav>
-        <button onclick="showPage('inicio')" class="active"><i class="fas fa-home"></i> Início</button>
-        <button onclick="showPage('marcacoes')"><i class="fas fa-calendar-alt"></i> Marcações</button>
-        <button onclick="showPage('clientes')"><i class="fas fa-users"></i> Clientes</button>
-        <button onclick="showPage('servicos')"><i class="fas fa-cut"></i> Serviços</button>
-        <button onclick="showPage('financas')"><i class="fas fa-chart-line"></i> Finanças</button>
-        <button onclick="showPage('definicoes')"><i class="fas fa-cog"></i> Definições</button>
+        <button onclick="showPage('inicio')" id="btn-inicio" class="active"><i class="fas fa-home"></i> Início</button>
+        <button onclick="showPage('marcacoes')" id="btn-marcacoes"><i class="fas fa-calendar-alt"></i> Marcações</button>
+        <button onclick="showPage('clientes')" id="btn-clientes"><i class="fas fa-users"></i> Clientes</button>
+        <button onclick="showPage('servicos')" id="btn-servicos"><i class="fas fa-cut"></i> Serviços</button>
+        <button onclick="showPage('financas')" id="btn-financas"><i class="fas fa-chart-line"></i> Finanças</button>
+        <button onclick="showPage('definicoes')" id="btn-definicoes"><i class="fas fa-cog"></i> Definições</button>
     </nav>
 </header>
 
@@ -75,7 +75,9 @@
             <div class="card-stats"><h3>Horas Ocupadas</h3><div class="value" id="d-hor">0.0h</div><i class="fas fa-clock"></i></div>
             <div class="card-stats" onclick="showPage('marcacoes')"><h3>Vagas Livres</h3><div class="value" id="d-vag">0.0h</div><i class="fas fa-plus-circle"></i></div>
         </div>
-        <div class="box" style="max-width: 400px; margin: auto;"><canvas id="chartLotacao"></canvas></div>
+        <div class="box" style="max-width: 400px; margin: auto;">
+            <canvas id="chartLotacao"></canvas>
+        </div>
     </div>
 
     <div id="marcacoes" class="page">
@@ -121,7 +123,11 @@
     <div id="servicos" class="page">
         <div class="box">
             <h3>Gerir Serviços</h3>
-            <div class="form-row"><input type="text" id="s-nome" placeholder="Serviço"><input type="number" id="s-preco" placeholder="Preço (€)"><input type="number" step="0.5" id="s-dur" placeholder="Duração (h)"></div>
+            <div class="form-row">
+                <input type="text" id="s-nome" placeholder="Serviço">
+                <input type="number" id="s-preco" placeholder="Preço (€)">
+                <input type="number" step="0.5" id="s-dur" placeholder="Duração (h)">
+            </div>
             <button class="btn-main" onclick="addSer()">Adicionar</button>
         </div>
         <table><thead><tr><th>Serviço</th><th>Preço</th><th>Ação</th></tr></thead><tbody id="tb-serv-body"></tbody></table>
@@ -129,7 +135,11 @@
 
     <div id="financas" class="page">
         <div class="grid-dashboard">
-            <div class="card-stats"><h3>Faturamento Mensal</h3><div class="value" id="f-total">0.00 €</div><input type="month" id="f-mes-seletor" onchange="renderFinancas()" style="margin-top:10px; width:100%;"></div>
+            <div class="card-stats">
+                <h3>Faturamento Mensal</h3>
+                <div class="value" id="f-total">0.00 €</div>
+                <input type="month" id="f-mes-seletor" onchange="renderFinancas()" style="margin-top:10px; width:100%;">
+            </div>
             <div class="card-stats"><h3>Faturamento Anual</h3><div class="value" id="f-anual" style="color: var(--sucesso);">0.00 €</div></div>
         </div>
         <div class="box">
@@ -143,7 +153,14 @@
     </div>
 
     <div id="definicoes" class="page">
-        <div class="box"><h3>Configurações de Horário</h3><div class="form-row"><input type="number" id="cfg-h" placeholder="Horas/Dia"><input type="number" id="cfg-d" placeholder="Dias/Semana"></div><button class="btn-main" onclick="saveCfg()">Atualizar</button></div>
+        <div class="box">
+            <h3>Configurações de Horário</h3>
+            <div class="form-row">
+                <input type="number" id="cfg-h" placeholder="Horas/Dia">
+                <input type="number" id="cfg-d" placeholder="Dias/Semana">
+            </div>
+            <button class="btn-main" onclick="saveCfg()">Atualizar</button>
+        </div>
     </div>
 </div>
 
@@ -162,6 +179,7 @@
 
     let db = { clientes: [], servicos: [], marcacoes: [], config: { h: 8, d: 5 } };
     let diaSelecionado = new Date().toISOString().split('T')[0];
+    let myChart;
 
     database.ref('/').on('value', (snapshot) => {
         const val = snapshot.val();
@@ -174,13 +192,22 @@
         }
     });
 
-    function checkLogin() { if(document.getElementById('passInput').value === "marta2026") { document.getElementById('login-screen').style.display = 'none'; init(); } }
+    function checkLogin() { 
+        if(document.getElementById('passInput').value === "marta2026") { 
+            document.getElementById('login-screen').style.display = 'none'; 
+            init(); 
+        } else {
+            alert("Senha incorreta");
+        }
+    }
+
     function save() { database.ref('/').set(db); }
 
     function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
         updateUI();
     }
 
@@ -200,36 +227,36 @@
     function addMar() {
         const dataInput = document.getElementById('m-data').value;
         const duracaoNova = parseFloat(document.getElementById('m-duracao').value) || 0;
-        if(!dataInput || duracaoNova <= 0) return alert("Preencha data e duração!");
-        const inicioNovo = new Date(dataInput).getTime();
-        const fimNovo = inicioNovo + (duracaoNova * 3600000);
-        const conflito = db.marcacoes.find(m => {
-            if(m.duracao <= 0) return false;
-            const iEx = new Date(m.data).getTime();
-            const fEx = iEx + (m.duracao * 3600000);
-            return (inicioNovo < fEx && fimNovo > iEx);
-        });
-        if(conflito) return alert(`⚠️ CONFLITO! Já existe marcação de "${conflito.cliente}".`);
+        if(!dataInput || duracaoNova < 0) return alert("Preencha data e duração!");
+        
         const s = db.servicos.find(x => x.nome === document.getElementById('m-servico').value);
         const valorTotal = s ? s.preco : 0;
         const metade = valorTotal / 2;
         const nomeCli = document.getElementById('m-cliente').value;
-        db.marcacoes.push({ id: Date.now(), cliente: nomeCli, servico: document.getElementById('m-servico').value, data: dataInput, duracao: duracaoNova, valor: metade, realizado: false, tipo: 'Restante' });
-        db.marcacoes.push({ id: Date.now() + 1, cliente: nomeCli, servico: "Caução", data: dataInput, duracao: 0, valor: metade, realizado: false, tipo: 'Caução' });
+        const timestamp = Date.now();
+
+        // Registo do Restante (Com duração para o gráfico)
+        db.marcacoes.push({ id: timestamp, cliente: nomeCli, servico: document.getElementById('m-servico').value, data: dataInput, duracao: duracaoNova, valor: metade, realizado: false, tipo: 'Restante' });
+        // Registo da Caução (Duração 0 para não duplicar no gráfico)
+        db.marcacoes.push({ id: timestamp + 1, cliente: nomeCli, servico: "Caução", data: dataInput, duracao: 0, valor: metade, realizado: false, tipo: 'Caução' });
+        
         save();
-        alert("Agendamento e Caução registados nos Pendentes!");
+        alert("Agendamento guardado!");
     }
 
     function confirmarServico(id) {
         let m = db.marcacoes.find(x => x.id === id);
-        if(m) { m.realizado = true; m.dataConfirmacao = new Date().toISOString(); }
+        if(m) { 
+            m.realizado = true; 
+            m.dataConfirmacao = new Date().toISOString(); 
+        }
         save();
     }
 
     function removerMarcacao(id) { if(confirm("Deseja apagar este registo?")) { db.marcacoes = db.marcacoes.filter(x => x.id !== id); save(); } }
 
     function updateUI() {
-        const totalH = db.config.h * db.config.d * 4;
+        const totalH = (parseFloat(db.config.h) || 8) * (parseFloat(db.config.d) || 5) * 4;
         const ocuMar = db.marcacoes.reduce((a, b) => a + (parseFloat(b.duracao) || 0), 0);
         const ocuCliFixo = db.clientes.reduce((a, b) => a + (parseFloat(b.carga) || 0), 0);
         const totalOcu = ocuMar + ocuCliFixo;
@@ -239,7 +266,7 @@
         document.getElementById('d-vag').innerText = Math.max(0, totalH - totalOcu).toFixed(1) + "h";
 
         document.getElementById('l-cli').innerHTML = db.clientes.map(c => `<option value="${c.nome}">`).join('');
-        document.getElementById('m-servico').innerHTML = db.servicos.map(s => `<option>${s.nome}</option>`).join('');
+        document.getElementById('m-servico').innerHTML = db.servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
         document.querySelector('#t-clientes tbody').innerHTML = db.clientes.map(c => `<tr><td>${c.nome}</td><td>${c.tel || '---'}</td><td>${(c.carga || 0).toFixed(1)}h/mês</td><td><button onclick="delCli(${c.id})" class="btn-del"><i class="fas fa-trash"></i></button></td></tr>`).join('');
         document.getElementById('tb-serv-body').innerHTML = db.servicos.map(s => `<tr><td>${s.nome}</td><td>${s.preco}€</td><td><button onclick="db.servicos=db.servicos.filter(x=>x.id!==${s.id});save()" class="btn-del">Apagar</button></td></tr>`).join('');
         
@@ -258,48 +285,61 @@
             html += `<div class="cal-day ${diaSelecionado===dStr?'active-day':''} ${tem?'has-event':''}" onclick="diaSelecionado='${dStr}';updateUI()">${i}</div>`;
         }
         cal.innerHTML = html;
-        document.querySelector('#t-agenda tbody').innerHTML = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0).map(m => `<tr><td>${m.data.split('T')[1]}</td><td>${m.cliente}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`).join('');
+        document.querySelector('#t-agenda tbody').innerHTML = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0).map(m => `<tr><td>${m.data.split('T')[1] || '--:--'}</td><td>${m.cliente}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`).join('');
     }
 
     function renderFinancas() {
-        const mesSel = document.getElementById('f-mes-seletor').value;
+        const selector = document.getElementById('f-mes-seletor');
+        if(!selector.value) selector.value = new Date().toISOString().substring(0, 7);
+        const mesSel = selector.value;
         const anoAtual = new Date().getFullYear().toString();
         let tM = 0; let tA = 0;
         
+        // Pendentes
         document.querySelector('#t-pen tbody').innerHTML = db.marcacoes.filter(m => !m.realizado).map(m => {
             const isC = m.tipo === 'Caução';
-            return `<tr><td>${m.data.split('T')[0]}</td><td>${m.cliente} <span class="${isC?'tag-caucao':''}">${isC?'(CAUÇÃO)':''}</span></td><td>${m.valor.toFixed(2)}€</td>
+            return `<tr><td>${m.data.split('T')[0]}</td><td>${m.cliente} <span class="${isC?'tag-caucao':''}">${isC?'(CAUÇÃO)':'(RESTANTE)'}</span></td><td>${Number(m.valor).toFixed(2)}€</td>
             <td><button onclick="confirmarServico(${m.id})" class="btn-ok">✅ Recebido</button><button onclick="removerMarcacao(${m.id})" class="btn-del" style="margin-left:10px;"><i class="fas fa-times-circle"></i></button></td></tr>`;
         }).join('');
 
+        // Histórico
         const realizados = db.marcacoes.filter(m => m.realizado);
         document.querySelector('#t-his tbody').innerHTML = realizados.sort((a,b) => new Date(b.dataConfirmacao || b.data) - new Date(a.dataConfirmacao || a.data)).map(m => {
-            const isC = m.tipo === 'Caução';
-            return `<tr><td>${(m.dataConfirmacao || m.data).split('T')[0]}</td><td>${m.cliente} <span class="${isC?'tag-caucao':''}">${isC?'(Caução)':''}</span></td><td>${m.valor.toFixed(2)}€</td>
+            return `<tr><td>${(m.dataConfirmacao || m.data).split('T')[0]}</td><td>${m.cliente} - ${m.tipo}</td><td>${Number(m.valor).toFixed(2)}€</td>
             <td><button onclick="removerMarcacao(${m.id})" class="btn-del"><i class="fas fa-trash"></i></button></td></tr>`;
         }).join('');
 
         realizados.forEach(m => {
             const d = m.dataConfirmacao || m.data;
-            if(d.startsWith(mesSel)) tM += m.valor;
-            if(d.startsWith(anoAtual)) tA += m.valor;
+            if(d.startsWith(mesSel)) tM += Number(m.valor);
+            if(d.startsWith(anoAtual)) tA += Number(m.valor);
         });
         document.getElementById('f-total').innerText = tM.toFixed(2) + " €";
         document.getElementById('f-anual').innerText = tA.toFixed(2) + " €";
     }
 
-    let myChart;
     function renderChart(o, t) {
+        const ctx = document.getElementById('chartLotacao').getContext('2d');
         if(myChart) myChart.destroy();
         const p = t > 0 ? ((o/t)*100).toFixed(1) : 0;
-        myChart = new Chart(document.getElementById('chartLotacao'), {
+        myChart = new Chart(ctx, {
             type: 'doughnut',
-            data: { labels: ['Ocupado', 'Livre'], datasets: [{ data: [o, Math.max(0, t - o)], backgroundColor: ['#ff4d79', '#fff0f3'] }] },
-            options: { plugins: { title: { display: true, text: p + '% Ocupado' } } }
+            data: { labels: ['Ocupado', 'Livre'], datasets: [{ data: [o, Math.max(0, t - o)], backgroundColor: ['#ff4d79', '#fff0f3'], borderWidth: 0 }] },
+            options: { 
+                plugins: { 
+                    title: { display: true, text: p + '% Ocupado', color: '#ff4d79', font: { size: 18, weight: 'bold' } },
+                    legend: { position: 'bottom' }
+                } 
+            }
         });
     }
 
-    function saveCfg() { db.config.h = parseFloat(document.getElementById('cfg-h').value); db.config.d = parseFloat(document.getElementById('cfg-d').value); save(); }
+    function saveCfg() { 
+        db.config.h = parseFloat(document.getElementById('cfg-h').value); 
+        db.config.d = parseFloat(document.getElementById('cfg-d').value); 
+        save(); 
+    }
+
     function init() {
         document.getElementById('f-mes-seletor').value = new Date().toISOString().substring(0, 7);
         document.getElementById('txtData').innerText = new Date().toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long'});
