@@ -43,6 +43,7 @@
         .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
         .btn-google { background: #4285F4; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 10px; width: 100%; }
+        .btn-import { background: #fbbc05; color: #000; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 5px; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -78,6 +79,7 @@
                 <h3>Vagas Livres</h3>
                 <div class="value" id="d-vag">0.0h</div>
                 <button id="auth_button" class="btn-google" onclick="handleAuthClick()">Sincronizar Google Calendar</button>
+                <button id="import_button" class="btn-import" onclick="importarCalendarioTodo()"><i class="fas fa-sync"></i> Importar TODO o Calendário</button>
             </div>
         </div>
         <div class="box" style="max-width: 400px; margin: auto;">
@@ -203,6 +205,72 @@
         };
         try { await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': event }); } 
         catch (err) { console.error("Erro Google", err); }
+    }
+
+    // --- NOVA FUNÇÃO: IMPORTAÇÃO TOTAL DO CALENDÁRIO ---
+    async function importarCalendarioTodo() {
+        if (!gapi.client.getToken()) {
+            alert("Clica primeiro em 'Sincronizar Google Calendar'!");
+            return;
+        }
+
+        try {
+            document.getElementById('import_button').innerText = "⏳ A ler...";
+            
+            const response = await gapi.client.calendar.events.list({
+                'calendarId': 'primary',
+                'showDeleted': false,
+                'singleEvents': true,
+                'maxResults': 2500, // Limite alto para ler tudo
+                'orderBy': 'startTime',
+            });
+
+            const events = response.result.items;
+            if (!events || events.length == 0) {
+                alert("Nenhum evento encontrado no Google Calendar.");
+                return;
+            }
+
+            let novos = 0;
+            events.forEach(event => {
+                const titulo = event.summary || "Importado";
+                const dataRaw = event.start.dateTime || event.start.date;
+                const dataFormatada = dataRaw.substring(0, 16);
+                
+                // Evitar duplicados (mesma data e mesmo nome)
+                const existe = db.marcacoes.some(m => m.data === dataFormatada && m.cliente === titulo);
+
+                if (!existe) {
+                    // Tenta identificar o serviço pelo nome do evento para preencher preço/duração
+                    const sEnc = db.servicos.find(s => titulo.toLowerCase().includes(s.nome.toLowerCase()));
+                    const preco = sEnc ? sEnc.preco : 0;
+                    const dur = sEnc ? sEnc.duracao : 1;
+                    const ts = Date.now() + Math.floor(Math.random() * 500);
+
+                    db.marcacoes.push({
+                        id: ts, cliente: titulo, servico: sEnc ? sEnc.nome : "Google Import",
+                        data: dataFormatada, duracao: dur, valor: preco / 2, realizado: false, tipo: 'Restante'
+                    });
+                    db.marcacoes.push({
+                        id: ts + 1, cliente: titulo, servico: "Caução (Auto)",
+                        data: dataFormatada, duracao: 0, valor: preco / 2, realizado: false, tipo: 'Caução'
+                    });
+                    novos++;
+                }
+            });
+
+            if (novos > 0) {
+                save();
+                alert(`Importação concluída! ${novos} novos eventos adicionados.`);
+            } else {
+                alert("O site já está sincronizado com todos os eventos do Google.");
+            }
+            document.getElementById('import_button').innerHTML = '<i class="fas fa-sync"></i> Importar TODO o Calendário';
+        } catch (err) {
+            console.error(err);
+            alert("Erro na importação.");
+            document.getElementById('import_button').innerHTML = '<i class="fas fa-sync"></i> Erro ao Importar';
+        }
     }
 
     // --- FIREBASE E LÓGICA ORIGINAL ---
