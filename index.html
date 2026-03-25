@@ -44,12 +44,13 @@
         .cal-day { padding: 10px 5px; background: #fdfdfd; border: 1px solid #eee; cursor: pointer; border-radius: 5px; font-size: 14px; }
         .cal-day.active-day { background: var(--rosa); color: white; }
         .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
+        
+        .agenda-container { display: flex; gap: 15px; margin-top: 15px; }
+        .timeline-vertical { width: 60px; background: #f0f0f0; border-radius: 10px; position: relative; display: flex; flex-direction: column; border: 1px solid #ddd; height: 600px; flex-shrink: 0; }
+        .hour-mark { flex: 1; border-bottom: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; font-weight: bold; z-index: 1; }
+        .fill-vertical { position: absolute; left: 0; width: 100%; background: rgba(255, 77, 121, 0.4); border-radius: 2px; z-index: 2; pointer-events: none; border-top: 2px solid var(--rosa); border-bottom: 2px solid var(--rosa); }
+        .agenda-table-wrapper { flex-grow: 1; overflow-x: auto; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-
-        /* Mapeamento Visual Ajustado */
-        .timeline-container { margin: 15px 0; background: #f0f0f0; border-radius: 10px; position: relative; height: 50px; display: flex; overflow: hidden; border: 1px solid #ddd; }
-        .timeline-hour { flex: 1; border-right: 1px solid #fff; position: relative; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; font-weight: bold; z-index: 1; }
-        .timeline-fill { position: absolute; top: 0; height: 100%; background: rgba(255, 77, 121, 0.4); border-radius: 2px; z-index: 2; pointer-events: none; border-left: 2px solid var(--rosa); }
 
         @media (max-width: 768px) {
             .mar-layout { grid-template-columns: 1fr; }
@@ -57,7 +58,10 @@
             header { flex-direction: column; gap: 10px; }
             nav { justify-content: center; }
             .box { padding: 15px; }
-            table { display: block; overflow-x: auto; }
+            .agenda-container { flex-direction: column; }
+            .timeline-vertical { width: 100%; height: 60px; flex-direction: row; }
+            .hour-mark { border-bottom: none; border-right: 1px solid #fff; }
+            .fill-vertical { height: 100%; border-top: none; border-bottom: none; border-left: 2px solid var(--rosa); border-right: 2px solid var(--rosa); }
         }
     </style>
 </head>
@@ -126,8 +130,12 @@
             </div>
             <div class="box">
                 <h4>Agenda do Dia</h4>
-                <div id="visual-timeline" class="timeline-container"></div>
-                <table id="t-agenda"><thead><tr><th>Data | Hora</th><th>Cliente</th><th>Ação</th></tr></thead><tbody></tbody></table>
+                <div class="agenda-container">
+                    <div id="visual-timeline-vertical" class="timeline-vertical"></div>
+                    <div class="agenda-table-wrapper">
+                        <table id="t-agenda"><thead><tr><th>Hora</th><th>Duração</th><th>Cliente</th><th>Ação</th></tr></thead><tbody></tbody></table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -233,12 +241,19 @@
     function save() { database.ref('/').set(db); }
 
     function formatarLimpo(iso) {
-        if(!iso) return "--/--";
+        if(!iso) return "--:--";
         const d = new Date(iso);
-        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} - <strong>${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</strong>`;
+        return `<strong>${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}h</strong>`;
     }
 
     function showPage(id) {
+        if(id === 'financas') {
+            const pass = prompt("Digite a senha das Finanças:");
+            if(pass !== "DIEGO2026DOPE") {
+                alert("Senha incorreta!");
+                return;
+            }
+        }
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -328,45 +343,41 @@
         }
         cal.innerHTML = h;
 
-        // Renderização da Timeline com Duração Precisa e Transparência
-        const timeline = document.getElementById('visual-timeline');
-        timeline.innerHTML = ''; // Limpa
+        const timeline = document.getElementById('visual-timeline-vertical');
+        timeline.innerHTML = ''; 
         const startHour = 4;
         const endHour = 19;
         const totalHours = endHour - startHour + 1;
 
-        // Cria os blocos de fundo das horas
         for(let i = startHour; i <= endHour; i++) {
-            let hourBlock = document.createElement('div');
-            hourBlock.className = 'timeline-hour';
-            hourBlock.innerHTML = `<span>${i}h</span>`;
-            timeline.appendChild(hourBlock);
+            let hourMark = document.createElement('div');
+            hourMark.className = 'hour-mark';
+            hourMark.innerHTML = `<span>${i}h</span>`;
+            timeline.appendChild(hourMark);
         }
 
-        // Desenha as faixas de ocupação por cima
         const marcacoesDia = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0);
         marcacoesDia.forEach(m => {
             const dt = new Date(m.data);
-            const h = dt.getHours();
+            const hor = dt.getHours();
             const min = dt.getMinutes();
             const dur = m.duracao;
 
-            if (h >= startHour && h <= endHour) {
-                const startPos = ((h - startHour) + (min / 60)) / totalHours * 100;
-                const widthPos = (dur / totalHours) * 100;
-                
+            if (hor >= startHour && hor <= endHour) {
+                const startPos = ((hor - startHour) + (min / 60)) / totalHours * 100;
+                const heightPos = (dur / totalHours) * 100;
                 let fill = document.createElement('div');
-                fill.className = 'timeline-fill';
-                fill.style.left = startPos + '%';
-                fill.style.width = widthPos + '%';
+                fill.className = 'fill-vertical';
+                fill.style.top = startPos + '%';
+                fill.style.height = heightPos + '%';
                 timeline.appendChild(fill);
             }
         });
 
-        document.querySelector('#t-agenda tbody').innerHTML = marcacoesDia.map(m => {
+        document.querySelector('#t-agenda tbody').innerHTML = marcacoesDia.sort((a,b) => new Date(a.data) - new Date(b.data)).map(m => {
             let cliInfo = db.clientes.find(c => c.nome === m.cliente);
             let telefone = m.tel || (cliInfo ? cliInfo.tel : "");
-            return `<tr><td>${formatarLimpo(m.data)}</td><td>${m.cliente} ${telefone ? `<button onclick="sendWpp('${m.cliente}','${telefone}')" class="btn-wpp" style="font-size:14px"><i class="fab fa-whatsapp"></i></button>` : ''}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`;
+            return `<tr><td>${formatarLimpo(m.data)}</td><td>${m.duracao}h</td><td>${m.cliente} ${telefone ? `<button onclick="sendWpp('${m.cliente}','${telefone}')" class="btn-wpp" style="font-size:14px"><i class="fab fa-whatsapp"></i></button>` : ''}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`;
         }).join('');
     }
 
