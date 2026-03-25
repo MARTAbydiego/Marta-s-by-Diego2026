@@ -29,7 +29,7 @@
         .card-stats .value { font-size: 28px; font-weight: bold; margin: 10px 0; color: var(--rosa); }
         .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn-main { background: var(--rosa); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 10px; }
         th { background: var(--rosa-claro); color: var(--rosa); padding: 12px; text-align: left; }
@@ -45,6 +45,16 @@
         .cal-day.active-day { background: var(--rosa); color: white; }
         .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+
+        /* Ajuste Mobile */
+        @media (max-width: 768px) {
+            .mar-layout { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            header { flex-direction: column; gap: 10px; }
+            nav { justify-content: center; }
+            .box { padding: 15px; }
+            table { display: block; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>
@@ -254,6 +264,7 @@
         db.marcacoes.push({ id: id+1, cliente: nomeCli, tel: telCli, servico: "Caução", data: dataStr, duracao: 0, valor: preco/2, realizado: false, tipo: 'Caução' });
         save();
         document.getElementById('m-tel').value = "";
+        document.getElementById('m-cliente').value = "";
     }
 
     function confirmarServico(id) {
@@ -285,6 +296,9 @@
         document.getElementById('d-hor').innerText = totalOcu.toFixed(1) + "h";
         document.getElementById('d-vag').innerText = Math.max(0, totalH - totalOcu).toFixed(1) + "h";
 
+        // CORREÇÃO: Popula o datalist para o autocomplete de nomes
+        document.getElementById('l-cli').innerHTML = db.clientes.map(c => `<option value="${c.nome}">`).join('');
+        
         document.getElementById('m-servico').innerHTML = db.servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
         document.getElementById('s-consumo').innerHTML = '<option value="">Gasta algum produto?</option>' + db.stock.map(s => `<option value="${s.item}">${s.item}</option>`).join('');
 
@@ -308,7 +322,6 @@
             h += `<div class="cal-day ${diaSelecionado===dStr?'active-day':''} ${db.marcacoes.some(m => m.data.startsWith(dStr) && m.duracao > 0)?'has-event':''}" onclick="diaSelecionado='${dStr}';updateUI()">${i}</div>`;
         }
         cal.innerHTML = h;
-        // ADIÇÃO: WhatsApp na tabela da agenda
         document.querySelector('#t-agenda tbody').innerHTML = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0).map(m => {
             let cliInfo = db.clientes.find(c => c.nome === m.cliente);
             let telefone = m.tel || (cliInfo ? cliInfo.tel : "");
