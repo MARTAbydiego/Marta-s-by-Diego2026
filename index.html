@@ -95,7 +95,14 @@
             <button class="btn-main" onclick="addMar()">Salvar Marcação (Gera Caução 50%)</button>
         </div>
         <div class="mar-layout">
-            <div class="box"><h4>Calendário Mensal</h4><div id="cal-grid" class="calendar-grid"></div></div>
+            <div class="box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <button onclick="mudarMes(-1)" style="border:none; background:var(--rosa); color:white; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-chevron-left"></i></button>
+                    <h4 id="cal-titulo" style="margin:0; text-transform: capitalize;">Calendário</h4>
+                    <button onclick="mudarMes(1)" style="border:none; background:var(--rosa); color:white; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div id="cal-grid" class="calendar-grid"></div>
+            </div>
             <div class="box"><h4>Agenda do Dia</h4><table id="t-agenda"><thead><tr><th>Hora</th><th>Cliente</th><th>Ação</th></tr></thead><tbody></tbody></table></div>
         </div>
     </div>
@@ -178,7 +185,8 @@
     const database = firebase.database();
 
     let db = { clientes: [], servicos: [], marcacoes: [], config: { h: 8, d: 5 } };
-    let diaSelecionado = new Date().toISOString().split('T')[0];
+    let diaSelecionado = new Date().toISOString().split('T');
+    let dataCalendario = new Date(); // Controla o mês que está a ser exibido
     let myChart;
 
     database.ref('/').on('value', (snapshot) => {
@@ -235,9 +243,7 @@
         const nomeCli = document.getElementById('m-cliente').value;
         const timestamp = Date.now();
 
-        // Registo do Restante (Com duração para o gráfico)
         db.marcacoes.push({ id: timestamp, cliente: nomeCli, servico: document.getElementById('m-servico').value, data: dataInput, duracao: duracaoNova, valor: metade, realizado: false, tipo: 'Restante' });
-        // Registo da Caução (Duração 0 para não duplicar no gráfico)
         db.marcacoes.push({ id: timestamp + 1, cliente: nomeCli, servico: "Caução", data: dataInput, duracao: 0, valor: metade, realizado: false, tipo: 'Caução' });
         
         save();
@@ -275,17 +281,30 @@
         renderChart(totalOcu, totalH);
     }
 
+    function mudarMes(delta) {
+        dataCalendario.setMonth(dataCalendario.getMonth() + delta);
+        renderCalendar();
+    }
+
     function renderCalendar() {
-        const cal = document.getElementById('cal-grid'); const agora = new Date();
-        const dias = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate();
+        const cal = document.getElementById('cal-grid');
+        const titulo = document.getElementById('cal-titulo');
+        
+        const ano = dataCalendario.getFullYear();
+        const mes = dataCalendario.getMonth();
+        
+        titulo.innerText = dataCalendario.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
+        
+        const diasNoMes = new Date(ano, mes + 1, 0).getDate();
         let html = '';
-        for(let i=1; i<=dias; i++) {
-            let dStr = `${agora.getFullYear()}-${String(agora.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        
+        for(let i=1; i<=diasNoMes; i++) {
+            let dStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
             let tem = db.marcacoes.some(m => m.data.startsWith(dStr) && m.duracao > 0);
             html += `<div class="cal-day ${diaSelecionado===dStr?'active-day':''} ${tem?'has-event':''}" onclick="diaSelecionado='${dStr}';updateUI()">${i}</div>`;
         }
         cal.innerHTML = html;
-        document.querySelector('#t-agenda tbody').innerHTML = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0).map(m => `<tr><td>${m.data.split('T')[1] || '--:--'}</td><td>${m.cliente}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`).join('');
+        document.querySelector('#t-agenda tbody').innerHTML = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0).map(m => `<tr><td>${m.data.split('T') || '--:--'}</td><td>${m.cliente}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`).join('');
     }
 
     function renderFinancas() {
@@ -295,17 +314,15 @@
         const anoAtual = new Date().getFullYear().toString();
         let tM = 0; let tA = 0;
         
-        // Pendentes
         document.querySelector('#t-pen tbody').innerHTML = db.marcacoes.filter(m => !m.realizado).map(m => {
             const isC = m.tipo === 'Caução';
-            return `<tr><td>${m.data.split('T')[0]}</td><td>${m.cliente} <span class="${isC?'tag-caucao':''}">${isC?'(CAUÇÃO)':'(RESTANTE)'}</span></td><td>${Number(m.valor).toFixed(2)}€</td>
+            return `<tr><td>${m.data.split('T')}</td><td>${m.cliente} <span class="${isC?'tag-caucao':''}">${isC?'(CAUÇÃO)':'(RESTANTE)'}</span></td><td>${Number(m.valor).toFixed(2)}€</td>
             <td><button onclick="confirmarServico(${m.id})" class="btn-ok">✅ Recebido</button><button onclick="removerMarcacao(${m.id})" class="btn-del" style="margin-left:10px;"><i class="fas fa-times-circle"></i></button></td></tr>`;
         }).join('');
 
-        // Histórico
         const realizados = db.marcacoes.filter(m => m.realizado);
         document.querySelector('#t-his tbody').innerHTML = realizados.sort((a,b) => new Date(b.dataConfirmacao || b.data) - new Date(a.dataConfirmacao || a.data)).map(m => {
-            return `<tr><td>${(m.dataConfirmacao || m.data).split('T')[0]}</td><td>${m.cliente} - ${m.tipo}</td><td>${Number(m.valor).toFixed(2)}€</td>
+            return `<tr><td>${(m.dataConfirmacao || m.data).split('T')}</td><td>${m.cliente} - ${m.tipo}</td><td>${Number(m.valor).toFixed(2)}€</td>
             <td><button onclick="removerMarcacao(${m.id})" class="btn-del"><i class="fas fa-trash"></i></button></td></tr>`;
         }).join('');
 
