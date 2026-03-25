@@ -46,7 +46,11 @@
         .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
 
-        /* Ajuste Mobile */
+        /* Mapeamento Visual Ajustado */
+        .timeline-container { margin: 15px 0; background: #f0f0f0; border-radius: 10px; position: relative; height: 50px; display: flex; overflow: hidden; border: 1px solid #ddd; }
+        .timeline-hour { flex: 1; border-right: 1px solid #fff; position: relative; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; font-weight: bold; z-index: 1; }
+        .timeline-fill { position: absolute; top: 0; height: 100%; background: rgba(255, 77, 121, 0.4); border-radius: 2px; z-index: 2; pointer-events: none; border-left: 2px solid var(--rosa); }
+
         @media (max-width: 768px) {
             .mar-layout { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
@@ -98,9 +102,9 @@
         <div class="box">
             <h3>Novo Agendamento</h3>
             <div class="form-row">
-                <input type="text" id="m-cliente" list="l-cli" placeholder="Nome da Cliente">
+                <input type="text" id="m-cliente" list="l-cli" placeholder="Nome da Cliente" oninput="autoPreencherTelefone()">
                 <datalist id="l-cli"></datalist>
-                <input type="text" id="m-tel" placeholder="Telefone (Novo Cliente)">
+                <input type="text" id="m-tel" placeholder="Telefone">
             </div>
             <div class="form-row">
                 <select id="m-servico" onchange="fillDur()"></select>
@@ -120,7 +124,11 @@
                 </div>
                 <div id="cal-grid" class="calendar-grid"></div>
             </div>
-            <div class="box"><h4>Agenda do Dia</h4><table id="t-agenda"><thead><tr><th>Data | Hora</th><th>Cliente</th><th>Ação</th></tr></thead><tbody></tbody></table></div>
+            <div class="box">
+                <h4>Agenda do Dia</h4>
+                <div id="visual-timeline" class="timeline-container"></div>
+                <table id="t-agenda"><thead><tr><th>Data | Hora</th><th>Cliente</th><th>Ação</th></tr></thead><tbody></tbody></table>
+            </div>
         </div>
     </div>
 
@@ -237,29 +245,30 @@
         document.getElementById('btn-' + id).classList.add('active');
     }
 
+    function autoPreencherTelefone() {
+        const nomeDigitado = document.getElementById('m-cliente').value;
+        const cli = db.clientes.find(c => c.nome === nomeDigitado);
+        if(cli) document.getElementById('m-tel').value = cli.tel;
+    }
+
     function addMar() {
         const dataStr = document.getElementById('m-data').value;
         const duracao = parseFloat(document.getElementById('m-duracao').value) || 0;
         if(!dataStr) return alert("Selecione data e hora!");
-
         const inicioNovo = new Date(dataStr).getTime();
         const fimNovo = inicioNovo + (duracao * 3600000);
-
         const conflito = db.marcacoes.some(m => {
             if(m.duracao <= 0 || m.realizado) return false;
             let mInicio = new Date(m.data).getTime();
             let mFim = mInicio + (m.duracao * 3600000);
             return (inicioNovo < mFim && fimNovo > mInicio);
         });
-
         if(conflito) return alert("⚠️ Horário ocupado!");
-
         const s = db.servicos.find(x => x.nome === document.getElementById('m-servico').value);
         const preco = s ? s.preco : 0;
         const id = Date.now();
         const nomeCli = document.getElementById('m-cliente').value;
         const telCli = document.getElementById('m-tel').value;
-
         db.marcacoes.push({ id: id, cliente: nomeCli, tel: telCli, servico: s?s.nome:'Serviço', data: dataStr, duracao: duracao, valor: preco/2, realizado: false, tipo: 'Restante' });
         db.marcacoes.push({ id: id+1, cliente: nomeCli, tel: telCli, servico: "Caução", data: dataStr, duracao: 0, valor: preco/2, realizado: false, tipo: 'Caução' });
         save();
@@ -295,13 +304,9 @@
         document.getElementById('d-cli').innerText = db.clientes.length;
         document.getElementById('d-hor').innerText = totalOcu.toFixed(1) + "h";
         document.getElementById('d-vag').innerText = Math.max(0, totalH - totalOcu).toFixed(1) + "h";
-
-        // CORREÇÃO: Popula o datalist para o autocomplete de nomes
         document.getElementById('l-cli').innerHTML = db.clientes.map(c => `<option value="${c.nome}">`).join('');
-        
         document.getElementById('m-servico').innerHTML = db.servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
         document.getElementById('s-consumo').innerHTML = '<option value="">Gasta algum produto?</option>' + db.stock.map(s => `<option value="${s.item}">${s.item}</option>`).join('');
-
         document.querySelector('#t-clientes tbody').innerHTML = db.clientes.map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td><td>${(c.carga||0).toFixed(1)}h</td><td><button onclick="sendWpp('${c.nome}','${c.tel}')" class="btn-wpp"><i class="fab fa-whatsapp"></i></button><button onclick="delCli(${c.id})" class="btn-del">X</button></td></tr>`).join('');
         document.getElementById('tb-serv-body').innerHTML = db.servicos.map(s => `<tr><td>${s.nome}</td><td>${s.preco}€</td><td>${s.duracao}h</td><td><button onclick="db.servicos=db.servicos.filter(x=>x.id!==${s.id});save()" class="btn-del">X</button></td></tr>`).join('');
         document.getElementById('t-stock-body').innerHTML = db.stock.map(s => `<tr><td>${s.item}</td><td>${s.qtd}</td><td>${s.min}</td><td><button class="btn-qty" onclick="updateStockQty(${s.id}, 1)">+</button> <button class="btn-qty" onclick="updateStockQty(${s.id}, -1)">-</button></td></tr>`).join('');
@@ -322,7 +327,43 @@
             h += `<div class="cal-day ${diaSelecionado===dStr?'active-day':''} ${db.marcacoes.some(m => m.data.startsWith(dStr) && m.duracao > 0)?'has-event':''}" onclick="diaSelecionado='${dStr}';updateUI()">${i}</div>`;
         }
         cal.innerHTML = h;
-        document.querySelector('#t-agenda tbody').innerHTML = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0).map(m => {
+
+        // Renderização da Timeline com Duração Precisa e Transparência
+        const timeline = document.getElementById('visual-timeline');
+        timeline.innerHTML = ''; // Limpa
+        const startHour = 4;
+        const endHour = 19;
+        const totalHours = endHour - startHour + 1;
+
+        // Cria os blocos de fundo das horas
+        for(let i = startHour; i <= endHour; i++) {
+            let hourBlock = document.createElement('div');
+            hourBlock.className = 'timeline-hour';
+            hourBlock.innerHTML = `<span>${i}h</span>`;
+            timeline.appendChild(hourBlock);
+        }
+
+        // Desenha as faixas de ocupação por cima
+        const marcacoesDia = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0);
+        marcacoesDia.forEach(m => {
+            const dt = new Date(m.data);
+            const h = dt.getHours();
+            const min = dt.getMinutes();
+            const dur = m.duracao;
+
+            if (h >= startHour && h <= endHour) {
+                const startPos = ((h - startHour) + (min / 60)) / totalHours * 100;
+                const widthPos = (dur / totalHours) * 100;
+                
+                let fill = document.createElement('div');
+                fill.className = 'timeline-fill';
+                fill.style.left = startPos + '%';
+                fill.style.width = widthPos + '%';
+                timeline.appendChild(fill);
+            }
+        });
+
+        document.querySelector('#t-agenda tbody').innerHTML = marcacoesDia.map(m => {
             let cliInfo = db.clientes.find(c => c.nome === m.cliente);
             let telefone = m.tel || (cliInfo ? cliInfo.tel : "");
             return `<tr><td>${formatarLimpo(m.data)}</td><td>${m.cliente} ${telefone ? `<button onclick="sendWpp('${m.cliente}','${telefone}')" class="btn-wpp" style="font-size:14px"><i class="fab fa-whatsapp"></i></button>` : ''}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`;
