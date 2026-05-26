@@ -12,24 +12,27 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // CONFIGURAÇÃO ATUALIZADA EXATAMENTE IGUAL À TUA ÚLTIMA FOTO
         window.firebaseAppConfig = {
-          apiKey: "AIzaSyCW-hHL5nlL58lULOfGYV0rzKfoJFVK3Xw",
-          authDomain: "marta-pro.firebaseapp.com",
-          databaseURL: "https://marta-pro-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "marta-pro",
-          storageBucket: "marta-pro.firebasestorage.app",
-          messagingSenderId: "583523831773",
-          appId: "1:583523831773:web:b695e46448ee193da33034"
+          apiKey: "AIzaSyDwogWAi6Zg5eWBG_A-fpyEq9TDvqHn_EU",
+          authDomain: "marta-pro-b35ff.firebaseapp.com",
+          databaseURL: "https://marta-pro-b35ff-default-rtdb.firebaseio.com",
+          projectId: "marta-pro-b35ff",
+          storageBucket: "marta-pro-b35ff.firebasestorage.app",
+          messagingSenderId: "296868255805",
+          appId: "1:296868255805:web:d08d11cb228033607fb254"
         };
 
-        const app = initializeApp(window.firebaseAppConfig);
-        window.firebaseDatabase = getDatabase(app);
-        window.firebaseRef = ref;
-        window.firebaseOnValue = onValue;
-        window.firebaseSet = set;
-        
-        // Disparar o carregamento do sistema após a inicialização do Firebase
-        window.initFirebaseSystem();
+        try {
+            const app = initializeApp(window.firebaseAppConfig);
+            window.firebaseDatabase = getDatabase(app);
+            window.firebaseRef = ref;
+            window.firebaseOnValue = onValue;
+            window.firebaseSet = set;
+            window.initFirebaseSystem();
+        } catch(e) {
+            console.error("Erro na inicialização do Firebase:", e);
+        }
     </script>
 
     <style>
@@ -66,7 +69,6 @@
         .cal-day.active-day { background: var(--rosa); color: white; }
         .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
         
-        /* Layout da Agenda - Versão Desktop Vertical */
         .agenda-container { display: flex; gap: 15px; margin-top: 15px; }
         .timeline-vertical { width: 60px; background: #f0f0f0; border-radius: 10px; position: relative; display: flex; flex-direction: column; border: 1px solid #ddd; height: 600px; flex-shrink: 0; }
         .hour-mark { flex: 1; border-bottom: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; font-weight: bold; z-index: 1; }
@@ -74,7 +76,6 @@
         .agenda-table-wrapper { flex-grow: 1; overflow-x: auto; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
 
-        /* AJUSTE PARA CELULAR - VOLTAR A HORIZONTAL */
         @media (max-width: 768px) {
             .mar-layout { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
@@ -113,6 +114,10 @@
 </header>
 
 <div class="container">
+    <div id="cloud-warning" style="display:none; background:#fff3cd; color:#856404; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-weight:bold; border:1px solid #ffeeba;">
+        ⚠️ Atenção: Os dados estão a ser guardados apenas neste aparelho. Ative as "Rules" no seu painel Firebase para sincronizar com o telemóvel!
+    </div>
+
     <div id="inicio" class="page active">
         <h2 id="txtData">--</h2>
         <div class="grid-dashboard">
@@ -236,13 +241,12 @@
     let dataCalendario = new Date();
     let myChart;
 
-    // Carregar backup local imediatamente caso a nuvem demore a responder
     if (localStorage.getItem('martapro_backup')) {
         try { db = JSON.parse(localStorage.getItem('martapro_backup')); } catch(e){}
     }
 
-    // Função gatilho chamada assim que o Firebase termina de carregar no topo da página
     window.initFirebaseSystem = function() {
+        if (!window.firebaseDatabase) return;
         const dbRef = window.firebaseRef(window.firebaseDatabase, '/');
         window.firebaseOnValue(dbRef, (snapshot) => {
             const val = snapshot.val();
@@ -253,10 +257,12 @@
                 db.stock = val.stock || [];
                 db.config = val.config || db.config;
                 localStorage.setItem('martapro_backup', JSON.stringify(db));
+                document.getElementById('cloud-warning').style.display = 'none';
                 updateUI();
             }
         }, (error) => {
-            console.error("Erro na leitura do Firebase. Verifique as regras de segurança no console:", error);
+            console.error("Bloqueio de leitura do Firebase:", error);
+            document.getElementById('cloud-warning').style.display = 'block';
         });
     };
 
@@ -264,11 +270,16 @@
     
     function save() { 
         localStorage.setItem('martapro_backup', JSON.stringify(db));
-        if (window.firebaseDatabase) {
+        if (window.firebaseDatabase && window.firebaseRef && window.firebaseSet) {
             const dbRef = window.firebaseRef(window.firebaseDatabase, '/');
-            window.firebaseSet(dbRef, db).catch(err => {
-                console.error("Erro ao gravar dados na nuvem! Verifique se as regras do Realtime Database expiraram:", err);
+            window.firebaseSet(dbRef, db).then(() => {
+                document.getElementById('cloud-warning').style.display = 'none';
+            }).catch(err => {
+                console.error("Bloqueio de gravação no Firebase:", err);
+                document.getElementById('cloud-warning').style.display = 'block';
             });
+        } else {
+            document.getElementById('cloud-warning').style.display = 'block';
         }
     }
 
@@ -318,6 +329,7 @@
         save();
         document.getElementById('m-tel').value = "";
         document.getElementById('m-cliente').value = "";
+        updateUI();
     }
 
     function confirmarServico(id) {
@@ -332,11 +344,12 @@
             }
         }
         save();
+        updateUI();
     }
 
     function updateStockQty(id, delta) {
         let p = db.stock.find(x => x.id === id);
-        if(p) { p.qtd = Math.max(0, p.qtd + delta); save(); }
+        if(p) { p.qtd = Math.max(0, p.qtd + delta); save(); updateUI(); }
     }
 
     function updateUI() {
@@ -351,7 +364,7 @@
         document.getElementById('m-servico').innerHTML = db.servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
         document.getElementById('s-consumo').innerHTML = '<option value="">Gasta algum produto?</option>' + db.stock.map(s => `<option value="${s.item}">${s.item}</option>`).join('');
         document.querySelector('#t-clientes tbody').innerHTML = db.clientes.map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td><td>${(c.carga||0).toFixed(1)}h</td><td><button onclick="sendWpp('${c.nome}','${c.tel}')" class="btn-wpp"><i class="fab fa-whatsapp"></i></button><button onclick="delCli(${c.id})" class="btn-del">X</button></td></tr>`).join('');
-        document.getElementById('tb-serv-body').innerHTML = db.servicos.map(s => `<tr><td>${s.nome}</td><td>${s.preco}€</td><td>${s.duracao}h</td><td><button onclick="db.servicos=db.servicos.filter(x=>x.id!==${s.id});save()" class="btn-del">X</button></td></tr>`).join('');
+        document.getElementById('tb-serv-body').innerHTML = db.servicos.map(s => `<tr><td>${s.nome}</td><td>${s.preco}€</td><td>${s.duracao}h</td><td><button onclick="db.servicos=db.servicos.filter(x=>x.id!==${s.id});save();updateUI();" class="btn-del">X</button></td></tr>`).join('');
         document.getElementById('t-stock-body').innerHTML = db.stock.map(s => `<tr><td>${s.item}</td><td>${s.qtd}</td><td>${s.min}</td><td><button class="btn-qty" onclick="updateStockQty(${s.id}, 1)">+</button> <button class="btn-qty" onclick="updateStockQty(${s.id}, -1)">-</button></td></tr>`).join('');
         renderCalendar();
         renderFinancas();
@@ -423,12 +436,12 @@
         myChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [o, Math.max(0, t-o)], backgroundColor: ['#ff4d79', '#fff0f3'] }] }, options: { plugins: { title: { display:true, text: ((o/t)*100).toFixed(0) + "% Ocupado", color:'#ff4d79' } } } });
     }
 
-    function addSer() { db.servicos.push({ id: Date.now(), nome: document.getElementById('s-nome').value, preco: parseFloat(document.getElementById('s-preco').value), duracao: parseFloat(document.getElementById('s-dur').value), gasta: document.getElementById('s-consumo').value }); save(); }
-    function addCli() { db.clientes.push({ id: Date.now(), nome: document.getElementById('c-nome').value, tel: document.getElementById('c-tel').value, carga: (4/parseInt(document.getElementById('c-freq').value))*(parseFloat(document.getElementById('c-tempo').value)||0) }); save(); }
-    function addStock() { db.stock.push({ id: Date.now(), item: document.getElementById('st-item').value, qtd: parseInt(document.getElementById('st-qtd').value), min: parseInt(document.getElementById('st-min').value) }); save(); }
-    function saveCfg() { db.config.h = parseFloat(document.getElementById('cfg-h').value); db.config.d = parseFloat(document.getElementById('cfg-d').value); db.config.msg = document.getElementById('cfg-msg').value; save(); alert("Guardado!"); }
-    function delCli(id) { if(confirm("Apagar?")) { db.clientes = db.clientes.filter(c => c.id !== id); save(); } }
-    function removerMarcacao(id) { if(confirm("Apagar?")) { db.marcacoes = db.marcacoes.filter(x => x.id !== id); save(); } }
+    function addSer() { db.servicos.push({ id: Date.now(), nome: document.getElementById('s-nome').value, preco: parseFloat(document.getElementById('s-preco').value), duracao: parseFloat(document.getElementById('s-dur').value), gasta: document.getElementById('s-consumo').value }); save(); updateUI(); }
+    function addCli() { db.clientes.push({ id: Date.now(), nome: document.getElementById('c-nome').value, tel: document.getElementById('c-tel').value, carga: (4/parseInt(document.getElementById('c-freq').value))*(parseFloat(document.getElementById('c-tempo').value)||0) }); save(); updateUI(); }
+    function addStock() { db.stock.push({ id: Date.now(), item: document.getElementById('st-item').value, qtd: parseInt(document.getElementById('st-qtd').value), min: parseInt(document.getElementById('st-min').value) }); save(); updateUI(); }
+    function saveCfg() { db.config.h = parseFloat(document.getElementById('cfg-h').value); db.config.d = parseFloat(document.getElementById('cfg-d').value); db.config.msg = document.getElementById('cfg-msg').value; save(); alert("Guardado!"); updateUI(); }
+    function delCli(id) { if(confirm("Apagar?")) { db.clientes = db.clientes.filter(c => c.id !== id); save(); updateUI(); } }
+    function removerMarcacao(id) { if(confirm("Apagar?")) { db.marcacoes = db.marcacoes.filter(x => x.id !== id); save(); updateUI(); } }
     function fillDur() { let s = db.servicos.find(x => x.nome === document.getElementById('m-servico').value); if(s) document.getElementById('m-duracao').value = s.duracao; }
     function mudarMes(d) { dataCalendario.setMonth(dataCalendario.getMonth() + d); renderCalendar(); }
     function sendWpp(n, t) { window.open(`https://wa.me/351${t}?text=${encodeURIComponent(db.config.msg.replace('[NOME]',n))}`); }
@@ -439,6 +452,7 @@
         document.getElementById('txtData').innerText = new Date().toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long'});
         document.getElementById('cfg-h').value = db.config.h || 8; document.getElementById('cfg-d').value = db.config.d || 5; document.getElementById('cfg-msg').value = db.config.msg || "Olá [NOME]!";
         updateUI();
+        if(window.initFirebaseSystem) window.initFirebaseSystem();
     }
     window.addEventListener('resize', renderCalendar);
 </script>
