@@ -12,7 +12,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // CONFIGURAÇÃO ATUALIZADA EXATAMENTE IGUAL À TUA ÚLTIMA FOTO
+        // Credenciais atualizadas do teu Firebase marta-pro-b35ff
         window.firebaseAppConfig = {
           apiKey: "AIzaSyDwogWAi6Zg5eWBG_A-fpyEq9TDvqHn_EU",
           authDomain: "marta-pro-b35ff.firebaseapp.com",
@@ -31,7 +31,7 @@
             window.firebaseSet = set;
             window.initFirebaseSystem();
         } catch(e) {
-            console.error("Erro na inicialização do Firebase:", e);
+            console.error("Erro ao conectar ao Firebase:", e);
         }
     </script>
 
@@ -39,11 +39,11 @@
         :root { --rosa: #ff4d79; --rosa-claro: #fff0f3; --branco: #ffffff; --cinza: #4a4a4a; --sucesso: #28a745; --erro: #dc3545; --wpp: #25d366; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; color: var(--cinza); margin: 0; }
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--rosa); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-card { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 300px; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         header { background: var(--branco); border-bottom: 2px solid var(--rosa-claro); padding: 10px 20px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
         .logo { color: var(--rosa); font-weight: bold; font-size: 24px; }
         nav { display: flex; gap: 10px; flex-wrap: wrap; }
-        nav button { background: none; border: none; padding: 10px; cursor: pointer; color: var(--cinza); font-weight: 500; border-radius: 8px; }
+        nav button { background: none; border: none; padding: 10px; cursor: pointer; color: var(--cinza); font-weight: 500; border-radius: 8px; font-size: 15px; transition: 0.2s; }
         nav button:hover, nav button.active { background: var(--rosa-claro); color: var(--rosa); }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         .page { display: none; animation: fadeIn 0.4s; }
@@ -53,38 +53,43 @@
         .card-stats .value { font-size: 28px; font-weight: bold; margin: 10px 0; color: var(--rosa); }
         .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn-main { background: var(--rosa); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 10px; }
-        th { background: var(--rosa-claro); color: var(--rosa); padding: 12px; text-align: left; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fdfdfd; }
+        input:focus, select:focus { border-color: var(--rosa); outline: none; }
+        .btn-main { background: var(--rosa); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; transition: 0.2s; }
+        .btn-main:hover { opacity: 0.9; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        th { background: var(--rosa-claro); color: var(--rosa); padding: 12px; text-align: left; font-weight: 600; }
         td { padding: 12px; border-bottom: 1px solid #f9f9f9; }
-        .btn-del { color: var(--erro); background: none; border: none; cursor: pointer; font-size: 16px; }
-        .btn-ok { background: var(--sucesso); color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+        .btn-del { color: var(--erro); background: none; border: none; cursor: pointer; font-size: 16px; padding: 5px; }
+        .btn-del:hover { transform: scale(1.1); }
+        .btn-ok { background: var(--sucesso); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500; }
         .btn-wpp { color: var(--wpp); background: none; border: none; cursor: pointer; font-size: 18px; margin-right: 8px; }
-        .btn-qty { background: #eee; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-qty { background: #eee; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; margin: 0 2px; }
         .tag-caucao { color: var(--erro); font-weight: bold; font-size: 11px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-day { padding: 10px 5px; background: #fdfdfd; border: 1px solid #eee; cursor: pointer; border-radius: 5px; font-size: 14px; }
-        .cal-day.active-day { background: var(--rosa); color: white; }
-        .cal-day.has-event { border-bottom: 3px solid var(--rosa); font-weight: bold; }
+        .cal-day { padding: 12px 5px; background: #fdfdfd; border: 1px solid #eee; cursor: pointer; border-radius: 5px; font-size: 14px; transition: 0.2s; }
+        .cal-day:hover { background: var(--rosa-claro); }
+        .cal-day.active-day { background: var(--rosa) !important; color: white !important; font-weight: bold; }
+        .cal-day.has-event { border-bottom: 4px solid var(--rosa); font-weight: bold; background: #fff5f7; }
         
         .agenda-container { display: flex; gap: 15px; margin-top: 15px; }
-        .timeline-vertical { width: 60px; background: #f0f0f0; border-radius: 10px; position: relative; display: flex; flex-direction: column; border: 1px solid #ddd; height: 600px; flex-shrink: 0; }
-        .hour-mark { flex: 1; border-bottom: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; font-weight: bold; z-index: 1; }
-        .fill-vertical { position: absolute; left: 0; width: 100%; background: rgba(255, 77, 121, 0.4); border-radius: 2px; z-index: 2; pointer-events: none; border-top: 2px solid var(--rosa); border-bottom: 2px solid var(--rosa); }
+        .timeline-vertical { width: 60px; background: #fdfdfd; border-radius: 10px; position: relative; display: flex; flex-direction: column; border: 1px solid #eee; height: 500px; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .hour-mark { flex: 1; border-bottom: 1px solid #f7f7f7; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #888; font-weight: bold; z-index: 1; }
+        .fill-vertical { position: absolute; left: 0; width: 100%; background: rgba(255, 77, 121, 0.35); border-radius: 4px; z-index: 2; pointer-events: none; border-top: 2px solid var(--rosa); border-bottom: 2px solid var(--rosa); box-sizing: border-box; }
         .agenda-table-wrapper { flex-grow: 1; overflow-x: auto; }
         .mar-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        #cloud-warning { display:none; background:#fff3cd; color:#856404; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center; font-weight:bold; border:1px solid #ffeeba; }
 
         @media (max-width: 768px) {
             .mar-layout { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
-            header { flex-direction: column; gap: 10px; }
+            header { flex-direction: column; gap: 10px; text-align: center; }
             nav { justify-content: center; }
             .box { padding: 15px; }
             .agenda-container { flex-direction: column; }
-            .timeline-vertical { width: 100%; height: 50px; flex-direction: row; }
-            .hour-mark { border-bottom: none; border-right: 1px solid #fff; }
+            .timeline-vertical { width: 100%; height: 60px; flex-direction: row; }
+            .hour-mark { border-bottom: none; border-right: 1px solid #eee; }
             .fill-vertical { height: 100%; border-top: none; border-bottom: none; border-left: 2px solid var(--rosa); border-right: 2px solid var(--rosa); width: auto; }
         }
     </style>
@@ -93,10 +98,10 @@
 
 <div id="login-screen">
     <div class="login-card">
-        <i class="fas fa-crown" style="font-size: 40px; color: var(--rosa);"></i>
-        <h2>Marta Pro</h2>
-        <input type="password" id="passInput" placeholder="Sua Senha">
-        <button class="btn-main" onclick="checkLogin()">Entrar</button>
+        <i class="fas fa-crown" style="font-size: 40px; color: var(--rosa); margin-bottom: 15px;"></i>
+        <h2 style="margin: 0 0 20px 0; color: #333;">Marta Pro</h2>
+        <input type="password" id="passInput" placeholder="Palavra-passe">
+        <button class="btn-main" style="margin-top: 15px;" onclick="checkLogin()">Entrar</button>
     </div>
 </div>
 
@@ -114,18 +119,18 @@
 </header>
 
 <div class="container">
-    <div id="cloud-warning" style="display:none; background:#fff3cd; color:#856404; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-weight:bold; border:1px solid #ffeeba;">
-        ⚠️ Atenção: Os dados estão a ser guardados apenas neste aparelho. Ative as "Rules" no seu painel Firebase para sincronizar com o telemóvel!
+    <div id="cloud-warning">
+        ⚠️ Atenção: Modo Offline ou Ligação Bloqueada. Certifique-se de que ativou as "Regras" (Rules) no seu painel Firebase!
     </div>
 
     <div id="inicio" class="page active">
-        <h2 id="txtData">--</h2>
+        <h2 id="txtData" style="color: var(--rosa); font-weight: 600; margin-bottom: 25px;">--</h2>
         <div class="grid-dashboard">
-            <div class="card-stats" onclick="showPage('clientes')"><h3>Clientes</h3><div class="value" id="d-cli">0</div><i class="fas fa-user-heart"></i></div>
-            <div class="card-stats"><h3>Horas Ocupadas</h3><div class="value" id="d-hor">0.0h</div><i class="fas fa-clock"></i></div>
-            <div class="card-stats" onclick="showPage('marcacoes')"><h3>Vagas Livres</h3><div class="value" id="d-vag">0.0h</div><i class="fas fa-plus-circle"></i></div>
+            <div class="card-stats" onclick="showPage('clientes')"><h3>Clientes</h3><div class="value" id="d-cli">0</div><i class="fas fa-user-heart" style="position:absolute; right:20px; bottom:20px; font-size:24px; color: #ff4d7922;"></i></div>
+            <div class="card-stats"><h3>Horas Ocupadas</h3><div class="value" id="d-hor">0.0h</div><i class="fas fa-clock" style="position:absolute; right:20px; bottom:20px; font-size:24px; color: #ff4d7922;"></i></div>
+            <div class="card-stats" onclick="showPage('marcacoes')"><h3>Vagas Livres</h3><div class="value" id="d-vag">0.0h</div><i class="fas fa-plus-circle" style="position:absolute; right:20px; bottom:20px; font-size:24px; color: #ff4d7922;"></i></div>
         </div>
-        <div class="box" style="max-width: 400px; margin: auto;">
+        <div class="box" style="max-width: 340px; margin: auto; text-align: center;">
             <canvas id="chartLotacao"></canvas>
         </div>
     </div>
@@ -136,7 +141,7 @@
             <div class="form-row">
                 <input type="text" id="m-cliente" list="l-cli" placeholder="Nome da Cliente" oninput="autoPreencherTelefone()">
                 <datalist id="l-cli"></datalist>
-                <input type="text" id="m-tel" placeholder="Telefone">
+                <input type="text" id="m-tel" placeholder="Telefone (Ex: 912345678)">
             </div>
             <div class="form-row">
                 <select id="m-servico" onchange="fillDur()"></select>
@@ -149,15 +154,15 @@
         </div>
         <div class="mar-layout">
             <div class="box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <button onclick="mudarMes(-1)" style="border:none; background:var(--rosa); color:white; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-chevron-left"></i></button>
-                    <h4 id="cal-titulo" style="margin:0; text-transform: capitalize;">Calendário</h4>
-                    <button onclick="mudarMes(1)" style="border:none; background:var(--rosa); color:white; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-chevron-right"></i></button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <button onclick="mudarMes(-1)" style="border:none; background:var(--rosa); color:white; border-radius:6px; padding:6px 12px; cursor:pointer;"><i class="fas fa-chevron-left"></i></button>
+                    <h4 id="cal-titulo" style="margin:0; text-transform: capitalize; font-size: 16px;">Calendário</h4>
+                    <button onclick="mudarMes(1)" style="border:none; background:var(--rosa); color:white; border-radius:6px; padding:6px 12px; cursor:pointer;"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 <div id="cal-grid" class="calendar-grid"></div>
             </div>
             <div class="box">
-                <h4>Agenda do Dia</h4>
+                <h4 style="margin-top: 0;">Agenda do Dia Selecionado</h4>
                 <div class="agenda-container">
                     <div id="visual-timeline-vertical" class="timeline-vertical"></div>
                     <div class="agenda-table-wrapper">
@@ -170,73 +175,76 @@
 
     <div id="clientes" class="page">
         <div class="box">
-            <h3>Ficha de Cliente (Fixo)</h3>
-            <div class="form-row"><input type="text" id="c-nome" placeholder="Nome"><input type="text" id="c-tel" placeholder="Telefone"></div>
+            <h3>Ficha de Cliente Fixo</h3>
+            <div class="form-row"><input type="text" id="c-nome" placeholder="Nome Completo"><input type="text" id="c-tel" placeholder="Telefone"></div>
             <div class="form-row">
                 <select id="c-freq">
-                    <option value="1">1 Semana</option><option value="2">2 Semanas</option><option value="3">3 Semanas</option>
-                    <option value="4" selected>4 Semanas</option><option value="5">5 Semanas</option><option value="6">6 Semanas</option>
-                    <option value="7">7 Semanas</option><option value="8">8 Semanas</option>
+                    <option value="1">A cada 1 Semana</option><option value="2">A cada 2 Semanas</option><option value="3">A cada 3 Semanas</option>
+                    <option value="4" selected>A cada 4 Semanas (Mensal)</option><option value="5">A cada 5 Semanas</option><option value="6">A cada 6 Semanas</option>
+                    <option value="7">A cada 7 Semanas</option><option value="8">A cada 8 Semanas</option>
                 </select>
-                <input type="number" step="0.5" id="c-tempo" placeholder="Horas por sessão">
+                <input type="number" step="0.5" id="c-tempo" placeholder="Horas por sessão (Ex: 1.5)">
             </div>
-            <button class="btn-main" onclick="addCli()">Guardar Cliente</button>
+            <button class="btn-main" onclick="addCli()">Guardar Ficha de Cliente</button>
         </div>
-        <div class="box"><table id="t-clientes"><thead><tr><th>Nome</th><th>Telefone</th><th>Carga Mensal</th><th>Ação</th></tr></thead><tbody></tbody></table></div>
+        <div class="box"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Carga Estimada Mensal</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
     </div>
 
     <div id="servicos" class="page">
         <div class="box">
-            <h3>Gerir Serviços</h3>
-            <div class="form-row"><input type="text" id="s-nome" placeholder="Serviço"><input type="number" id="s-preco" placeholder="Preço (€)"></div>
+            <h3>Gerir Catálogo de Serviços</h3>
+            <div class="form-row"><input type="text" id="s-nome" placeholder="Nome do Serviço (Ex: Gelinho)"><input type="number" id="s-preco" placeholder="Preço Total (€)"></div>
             <div class="form-row">
-                <input type="number" step="0.5" id="s-dur" placeholder="Duração (h)">
-                <select id="s-consumo"><option value="">Gasta algum produto?</option></select>
+                <input type="number" step="0.5" id="s-dur" placeholder="Duração Padrão (Ex: 1h ou 1.5h)">
+                <select id="s-consumo"><option value="">Gasta algum produto do stock?</option></select>
             </div>
-            <button class="btn-main" onclick="addSer()">Adicionar</button>
+            <button class="btn-main" onclick="addSer()">Adicionar Serviço</button>
         </div>
-        <table><thead><tr><th>Serviço</th><th>Preço</th><th>Duração</th><th>Ação</th></tr></thead><tbody id="tb-serv-body"></tbody></table>
+        <table><thead><tr><th>Serviço</th><th>Preço Base</th><th>Duração</th><th>Gasta Stock</th><th>Ação</th></tr></thead><tbody id="tb-serv-body"></tbody></table>
     </div>
 
     <div id="stock" class="page">
         <div class="box">
-            <h3>Novo Item no Stock</h3>
+            <h3>Controlo de Stock / Inventário</h3>
             <div class="form-row">
-                <input type="text" id="st-item" placeholder="Produto">
-                <input type="number" id="st-qtd" placeholder="Qtd">
-                <input type="number" id="st-min" placeholder="Aviso Mínimo">
+                <input type="text" id="st-item" placeholder="Nome do Produto/Consumível">
+                <input type="number" id="st-qtd" placeholder="Quantidade Atual">
+                <input type="number" id="st-min" placeholder="Quantidade Alerta Mínimo">
             </div>
-            <button class="btn-main" onclick="addStock()">Adicionar</button>
+            <button class="btn-main" onclick="addStock()">Adicionar ao Stock</button>
         </div>
-        <div class="box"><table><thead><tr><th>Produto</th><th>Qtd</th><th>Mín</th><th>Ações Rápidas</th></tr></thead><tbody id="t-stock-body"></tbody></table></div>
+        <div class="box"><table><thead><tr><th>Produto</th><th>Qtd Disponível</th><th>Nível Mínimo</th><th>Gestão Rápida</th><th>Remover</th></tr></thead><tbody id="t-stock-body"></tbody></table></div>
     </div>
 
     <div id="financas" class="page">
         <div class="grid-dashboard">
-            <div class="card-stats"><h3>Faturamento Mensal</h3><div class="value" id="f-total">0.00 €</div><input type="month" id="f-mes-seletor" onchange="renderFinancas()"></div>
-            <div class="card-stats"><h3>Faturamento Anual</h3><div class="value" id="f-anual" style="color:var(--sucesso)">0.00 €</div></div>
+            <div class="card-stats"><h3>Faturamento Mensal Concluído</h3><div class="value" id="f-total">0.00 €</div><input type="month" id="f-mes-seletor" onchange="renderFinancas()" style="padding: 5px; font-size: 13px; margin-top: 5px;"></div>
+            <div class="card-stats"><h3>Faturamento Anual Acumulado</h3><div class="value" id="f-anual" style="color:var(--sucesso)">0.00 €</div></div>
         </div>
-        <div class="box"><h3>Pendentes</h3><table id="t-pen"><thead><tr><th>Data Agendada</th><th>Cliente</th><th>Valor</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
-        <div class="box"><h3>Histórico</h3><table id="t-his"><thead><tr><th>Data Pago</th><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody></tbody></table></div>
+        <div class="box"><h3>Pagamentos Pendentes (Falta Validar)</h3><table id="t-pen"><thead><tr><th>Data/Hora</th><th>Cliente e Tipo</th><th>Valor</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
+        <div class="box"><h3>Histórico de Recebimentos Guardados</h3><table id="t-his"><thead><tr><th>Data do Recebimento</th><th>Descrição / Cliente</th><th>Valor Pago</th><th>Eliminar</th></tr></thead><tbody></tbody></table></div>
     </div>
 
     <div id="definicoes" class="page">
         <div class="box">
-            <h3>Horário de Trabalho</h3>
-            <div class="form-row"><input type="number" id="cfg-h" placeholder="Horas/Dia"><input type="number" id="cfg-d" placeholder="Dias/Semana"></div>
-            <button class="btn-main" onclick="saveCfg()">Atualizar Horário</button>
+            <h3>Configuração de Horário de Trabalho</h3>
+            <div class="form-row">
+                <div><label style="font-size:12px; font-weight:bold;">Horas Atendimento / Dia:</label><input type="number" id="cfg-h" placeholder="Horas/Dia"></div>
+                <div><label style="font-size:12px; font-weight:bold;">Dias de Trabalho / Semana:</label><input type="number" id="cfg-d" placeholder="Dias/Semana"></div>
+            </div>
+            <button class="btn-main" onclick="saveCfg()">Atualizar Horário de Trabalho</button>
         </div>
         <div class="box">
-            <h3>Mensagem WhatsApp</h3>
-            <textarea id="cfg-msg" rows="3"></textarea>
-            <button class="btn-main" style="background:var(--wpp)" onclick="saveCfg()">Guardar Mensagem</button>
+            <h3>Modelo de Lembrete por WhatsApp</h3>
+            <textarea id="cfg-msg" rows="3" placeholder="Usa [NOME] para personalizar automaticamente"></textarea>
+            <button class="btn-main" style="background:var(--wpp); margin-top:10px;" onclick="saveCfg()">Guardar Mensagem Padrão</button>
         </div>
-        <div class="box"><button class="btn-main" style="background:#1d6f42" onclick="exportExcel()">Exportar Excel</button></div>
+        <div class="box" style="text-align: center;"><button class="btn-main" style="background:#1d6f42; max-width:300px;" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Exportar Dados para Excel</button></div>
     </div>
 </div>
 
 <script>
-    let db = { clientes: [], servicos: [], marcacoes: [], stock: [], config: { h: 8, d: 5, msg: "Olá [NOME]!" } };
+    let db = { clientes: [], servicos: [], marcacoes: [], stock: [], config: { h: 8, d: 5, msg: "Olá [NOME], lembra-te da tua marcação!" } };
     let diaSelecionado = new Date().toISOString().split('T');
     let dataCalendario = new Date();
     let myChart;
@@ -245,6 +253,7 @@
         try { db = JSON.parse(localStorage.getItem('martapro_backup')); } catch(e){}
     }
 
+    // Inicialização da escuta em tempo real do Firebase (Sincronização Absoluta)
     window.initFirebaseSystem = function() {
         if (!window.firebaseDatabase) return;
         const dbRef = window.firebaseRef(window.firebaseDatabase, '/');
@@ -255,18 +264,25 @@
                 db.servicos = val.servicos || [];
                 db.marcacoes = val.marcacoes || [];
                 db.stock = val.stock || [];
-                db.config = val.config || db.config;
+                db.config = val.config || { h: 8, d: 5, msg: "Olá [NOME]!" };
                 localStorage.setItem('martapro_backup', JSON.stringify(db));
                 document.getElementById('cloud-warning').style.display = 'none';
                 updateUI();
             }
         }, (error) => {
-            console.error("Bloqueio de leitura do Firebase:", error);
+            console.error("Erro Firebase (Leitura Negada):", error);
             document.getElementById('cloud-warning').style.display = 'block';
         });
     };
 
-    function checkLogin() { if(document.getElementById('passInput').value === "marta2026") { document.getElementById('login-screen').style.display = 'none'; init(); } }
+    function checkLogin() { 
+        if(document.getElementById('passInput').value === "marta2026") { 
+            document.getElementById('login-screen').style.display = 'none'; 
+            init(); 
+        } else {
+            alert("Senha incorreta!");
+        }
+    }
     
     function save() { 
         localStorage.setItem('martapro_backup', JSON.stringify(db));
@@ -275,11 +291,9 @@
             window.firebaseSet(dbRef, db).then(() => {
                 document.getElementById('cloud-warning').style.display = 'none';
             }).catch(err => {
-                console.error("Bloqueio de gravação no Firebase:", err);
+                console.error("Erro Firebase (Escrita Negada):", err);
                 document.getElementById('cloud-warning').style.display = 'block';
             });
-        } else {
-            document.getElementById('cloud-warning').style.display = 'block';
         }
     }
 
@@ -291,7 +305,7 @@
 
     function showPage(id) {
         if(id === 'financas') {
-            const pass = prompt("Digite a senha das Finanças:");
+            const pass = prompt("Digite a senha de acesso às Finanças:");
             if(pass !== "DIEGO2026DOPE") { alert("Senha incorreta!"); return; }
         }
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -302,30 +316,36 @@
 
     function autoPreencherTelefone() {
         const nomeDigitado = document.getElementById('m-cliente').value;
-        const cli = db.clientes.find(c => c.nome === nomeDigitado);
+        const cli = db.clientes.find(c => c.nome.trim().toLowerCase() === nomeDigitado.trim().toLowerCase());
         if(cli) document.getElementById('m-tel').value = cli.tel;
     }
 
     function addMar() {
         const dataStr = document.getElementById('m-data').value;
         const duracao = parseFloat(document.getElementById('m-duracao').value) || 0;
-        if(!dataStr) return alert("Selecione data e hora!");
+        if(!dataStr) return alert("Por favor, selecione a data e a hora do agendamento!");
+        
         const inicioNovo = new Date(dataStr).getTime();
         const fimNovo = inicioNovo + (duracao * 3600000);
+        
         const conflito = db.marcacoes.some(m => {
             if(m.duracao <= 0 || m.realizado) return false;
             let mInicio = new Date(m.data).getTime();
             let mFim = mInicio + (m.duracao * 3600000);
             return (inicioNovo < mFim && fimNovo > mInicio);
         });
-        if(conflito) return alert("⚠️ Horário ocupado!");
+        
+        if(conflito) return alert("⚠️ Alerta: Esse horário já se encontra ocupado por outra marcação!");
+        
         const s = db.servicos.find(x => x.nome === document.getElementById('m-servico').value);
         const preco = s ? s.preco : 0;
         const id = Date.now();
         const nomeCli = document.getElementById('m-cliente').value;
         const telCli = document.getElementById('m-tel').value;
+        
         db.marcacoes.push({ id: id, cliente: nomeCli, tel: telCli, servico: s?s.nome:'Serviço', data: dataStr, duracao: duracao, valor: preco/2, realizado: false, tipo: 'Restante' });
-        db.marcacoes.push({ id: id+1, cliente: nomeCli, tel: telCli, servico: "Caução", data: dataStr, duracao: 0, valor: preco/2, realizado: false, tipo: 'Caução' });
+        db.marcacoes.push({ id: id+1, cliente: nomeCli, tel: telCli, servico: s?s.nome:'Serviço', data: dataStr, duracao: 0, valor: preco/2, realizado: false, tipo: 'Caução' });
+        
         save();
         document.getElementById('m-tel').value = "";
         document.getElementById('m-cliente').value = "";
@@ -354,18 +374,22 @@
 
     function updateUI() {
         const totalH = (parseFloat(db.config.h) || 8) * (parseFloat(db.config.d) || 5) * 4;
-        const ocuMar = db.marcacoes.reduce((a, b) => a + (parseFloat(b.duracao) || 0), 0);
+        const ocuMar = db.marcacoes.filter(m => !m.realizado).reduce((a, b) => a + (parseFloat(b.duracao) || 0), 0);
         const ocuCliFixo = db.clientes.reduce((a, b) => a + (parseFloat(b.carga) || 0), 0);
         const totalOcu = ocuMar + ocuCliFixo;
+        
         document.getElementById('d-cli').innerText = db.clientes.length;
         document.getElementById('d-hor').innerText = totalOcu.toFixed(1) + "h";
         document.getElementById('d-vag').innerText = Math.max(0, totalH - totalOcu).toFixed(1) + "h";
+        
         document.getElementById('l-cli').innerHTML = db.clientes.map(c => `<option value="${c.nome}">`).join('');
         document.getElementById('m-servico').innerHTML = db.servicos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
-        document.getElementById('s-consumo').innerHTML = '<option value="">Gasta algum produto?</option>' + db.stock.map(s => `<option value="${s.item}">${s.item}</option>`).join('');
-        document.querySelector('#t-clientes tbody').innerHTML = db.clientes.map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td><td>${(c.carga||0).toFixed(1)}h</td><td><button onclick="sendWpp('${c.nome}','${c.tel}')" class="btn-wpp"><i class="fab fa-whatsapp"></i></button><button onclick="delCli(${c.id})" class="btn-del">X</button></td></tr>`).join('');
-        document.getElementById('tb-serv-body').innerHTML = db.servicos.map(s => `<tr><td>${s.nome}</td><td>${s.preco}€</td><td>${s.duracao}h</td><td><button onclick="db.servicos=db.servicos.filter(x=>x.id!==${s.id});save();updateUI();" class="btn-del">X</button></td></tr>`).join('');
-        document.getElementById('t-stock-body').innerHTML = db.stock.map(s => `<tr><td>${s.item}</td><td>${s.qtd}</td><td>${s.min}</td><td><button class="btn-qty" onclick="updateStockQty(${s.id}, 1)">+</button> <button class="btn-qty" onclick="updateStockQty(${s.id}, -1)">-</button></td></tr>`).join('');
+        document.getElementById('s-consumo').innerHTML = '<option value="">Gasta algum produto do stock?</option>' + db.stock.map(s => `<option value="${s.item}">${s.item}</option>`).join('');
+        
+        document.querySelector('#t-clientes tbody').innerHTML = db.clientes.map(c => `<tr><td>${c.nome}</td><td>${c.tel}</td><td>${(c.carga||0).toFixed(1)}h/mês</td><td><button onclick="sendWpp('${c.nome}','${c.tel}')" class="btn-wpp"><i class="fab fa-whatsapp"></i></button><button onclick="delCli(${c.id})" class="btn-del"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        document.getElementById('tb-serv-body').innerHTML = db.servicos.map(s => `<tr><td>${s.nome}</td><td>${s.preco}€</td><td>${s.duracao}h</td><td>${s.gasta || 'Nenhum'}</td><td><button onclick="delSer(${s.id})" class="btn-del"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        document.getElementById('t-stock-body').innerHTML = db.stock.map(s => `<tr style="${s.qtd <= s.min ? 'background-color:#fff0f2; font-weight:bold; color:var(--erro);' : ''}"><td>${s.item}</td><td>${s.qtd}</td><td>${s.min}</td><td><button class="btn-qty" onclick="updateStockQty(${s.id}, 1)">+</button> <button class="btn-qty" onclick="updateStockQty(${s.id}, -1)">-</button></td><td><button onclick="delStock(${s.id})" class="btn-del"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        
         renderCalendar();
         renderFinancas();
         renderChart(totalOcu, totalH);
@@ -379,22 +403,24 @@
         let h = '';
         for(let i=1; i<=dias; i++) {
             let dStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-            h += `<div class="cal-day ${diaSelecionado===dStr?'active-day':''} ${db.marcacoes.some(m => m.data.startsWith(dStr) && m.duracao > 0)?'has-event':''}" onclick="diaSelecionado='${dStr}';updateUI()">${i}</div>`;
+            let hasEvent = db.marcacoes.some(m => m.data.startsWith(dStr) && m.duracao > 0 && !m.realizado);
+            h += `<div class="cal-day ${diaSelecionado===dStr?'active-day':''} ${hasEvent?'has-event':''}" onclick="diaSelecionado='${dStr}';updateUI()">${i}</div>`;
         }
         cal.innerHTML = h;
 
         const timeline = document.getElementById('visual-timeline-vertical');
         timeline.innerHTML = ''; 
-        const startHour = 4; const endHour = 19; const totalHours = endHour - startHour + 1;
+        const startHour = 7; const endHour = 21; const totalHours = endHour - startHour + 1;
         for(let i = startHour; i <= endHour; i++) {
             let hourMark = document.createElement('div');
             hourMark.className = 'hour-mark';
-            hourMark.innerHTML = `<span>${i}h</span>`;
+            hourMark.innerHTML = `<span>${String(i).padStart(2,'0')}h</span>`;
             timeline.appendChild(hourMark);
         }
 
         const isMobile = window.innerWidth <= 768;
-        const marcacoesDia = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0);
+        const marcacoesDia = db.marcacoes.filter(m => m.data.startsWith(diaSelecionado) && m.duracao > 0 && !m.realizado);
+        
         marcacoesDia.forEach(m => {
             const dt = new Date(m.data);
             const hor = dt.getHours(); const min = dt.getMinutes(); const dur = m.duracao;
@@ -413,19 +439,27 @@
         });
 
         document.querySelector('#t-agenda tbody').innerHTML = marcacoesDia.sort((a,b) => new Date(a.data) - new Date(b.data)).map(m => {
-            let cliInfo = db.clientes.find(c => c.nome === m.cliente);
+            let cliInfo = db.clientes.find(c => c.nome.trim().toLowerCase() === m.cliente.trim().toLowerCase());
             let telefone = m.tel || (cliInfo ? cliInfo.tel : "");
-            return `<tr><td>${formatarLimpo(m.data)}</td><td>${m.duracao}h</td><td>${m.cliente} ${telefone ? `<button onclick="sendWpp('${m.cliente}','${telefone}')" class="btn-wpp" style="font-size:14px"><i class="fab fa-whatsapp"></i></button>` : ''}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`;
+            return `<tr><td>${formatarLimpo(m.data)}</td><td>${m.duracao}h</td><td>${m.cliente} ${m.servico ? `<small style="color:var(--rosa)">(${m.servico})</small>` : ''} ${telefone ? `<button onclick="sendWpp('${m.cliente}','${telefone}')" class="btn-wpp" style="font-size:14px"><i class="fab fa-whatsapp"></i></button>` : ''}</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del"><i class="fas fa-calendar-times"></i></button></td></tr>`;
         }).join('');
     }
 
     function renderFinancas() {
         const mesSel = document.getElementById('f-mes-seletor').value;
         let tM = 0; let tA = 0;
-        document.querySelector('#t-pen tbody').innerHTML = db.marcacoes.filter(m => !m.realizado).map(m => `<tr><td>${formatarLimpo(m.data)}</td><td>${m.cliente} <span class="tag-caucao">(${m.tipo.toUpperCase()})</span></td><td>${m.valor.toFixed(2)}€</td><td><button onclick="confirmarServico(${m.id})" class="btn-ok">✅ Recebido</button> <button onclick="removerMarcacao(${m.id})" class="btn-del"><i class="fas fa-times-circle"></i></button></td></tr>`).join('');
+        
+        document.querySelector('#t-pen tbody').innerHTML = db.marcacoes.filter(m => !m.realizado).sort((a,b)=>new Date(a.data)-new Date(b.data)).map(m => `<tr><td>${formatarLimpo(m.data)}</td><td>${m.cliente} <span class="tag-caucao">(${m.tipo.toUpperCase()})</span></td><td>${m.valor.toFixed(2)}€</td><td><button onclick="confirmarServico(${m.id})" class="btn-ok">✅ Recebido</button> <button onclick="removerMarcacao(${m.id})" class="btn-del"><i class="fas fa-times-circle"></i></button></td></tr>`).join('');
+        
         const realizados = db.marcacoes.filter(m => m.realizado);
-        document.querySelector('#t-his tbody').innerHTML = realizados.sort((a,b) => new Date(b.dataConfirmacao)-new Date(a.dataConfirmacao)).map(m => `<tr><td>${formatarLimpo(m.dataConfirmacao)}</td><td>${m.cliente} - ${m.tipo}</td><td>${m.valor.toFixed(2)}€</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del">X</button></td></tr>`).join('');
-        realizados.forEach(m => { if((m.dataConfirmacao||m.data).startsWith(mesSel)) tM += m.valor; if((m.dataConfirmacao||m.data).startsWith(new Date().getFullYear().toString())) tA += m.valor; });
+        document.querySelector('#t-his tbody').innerHTML = realizados.sort((a,b) => new Date(b.dataConfirmacao)-new Date(a.dataConfirmacao)).map(m => `<tr><td>${formatarLimpo(m.dataConfirmacao || m.data)}</td><td>${m.cliente} - <small>${m.servico || 'Serviço'} (${m.tipo})</small></td><td>${m.valor.toFixed(2)}€</td><td><button onclick="removerMarcacao(${m.id})" class="btn-del"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        
+        realizados.forEach(m => { 
+            let dataRef = m.dataConfirmacao || m.data;
+            if(dataRef.startsWith(mesSel)) tM += m.valor; 
+            if(dataRef.startsWith(new Date().getFullYear().toString())) tA += m.valor; 
+        });
+        
         document.getElementById('f-total').innerText = tM.toFixed(2) + " €";
         document.getElementById('f-anual').innerText = tA.toFixed(2) + " €";
     }
@@ -433,19 +467,79 @@
     function renderChart(o, t) {
         const ctx = document.getElementById('chartLotacao').getContext('2d');
         if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [o, Math.max(0, t-o)], backgroundColor: ['#ff4d79', '#fff0f3'] }] }, options: { plugins: { title: { display:true, text: ((o/t)*100).toFixed(0) + "% Ocupado", color:'#ff4d79' } } } });
+        myChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [o, Math.max(0, t-o)], backgroundColor: ['#ff4d79', '#fff0f3'] }] }, options: { plugins: { title: { display:true, text: ((o/t)*100).toFixed(0) + "% Horas Alocadas", color:'#ff4d79', font:{size:16, weight:'bold'} } } } });
     }
 
-    function addSer() { db.servicos.push({ id: Date.now(), nome: document.getElementById('s-nome').value, preco: parseFloat(document.getElementById('s-preco').value), duracao: parseFloat(document.getElementById('s-dur').value), gasta: document.getElementById('s-consumo').value }); save(); updateUI(); }
-    function addCli() { db.clientes.push({ id: Date.now(), nome: document.getElementById('c-nome').value, tel: document.getElementById('c-tel').value, carga: (4/parseInt(document.getElementById('c-freq').value))*(parseFloat(document.getElementById('c-tempo').value)||0) }); save(); updateUI(); }
-    function addStock() { db.stock.push({ id: Date.now(), item: document.getElementById('st-item').value, qtd: parseInt(document.getElementById('st-qtd').value), min: parseInt(document.getElementById('st-min').value) }); save(); updateUI(); }
-    function saveCfg() { db.config.h = parseFloat(document.getElementById('cfg-h').value); db.config.d = parseFloat(document.getElementById('cfg-d').value); db.config.msg = document.getElementById('cfg-msg').value; save(); alert("Guardado!"); updateUI(); }
-    function delCli(id) { if(confirm("Apagar?")) { db.clientes = db.clientes.filter(c => c.id !== id); save(); updateUI(); } }
-    function removerMarcacao(id) { if(confirm("Apagar?")) { db.marcacoes = db.marcacoes.filter(x => x.id !== id); save(); updateUI(); } }
+    function addSer() { 
+        const nome = document.getElementById('s-nome').value;
+        const preco = parseFloat(document.getElementById('s-preco').value);
+        const dur = parseFloat(document.getElementById('s-dur').value);
+        if(!nome || isNaN(preco) || isNaN(dur)) return alert("Preencha todos os dados do serviço corretamente!");
+        db.servicos.push({ id: Date.now(), nome: nome, preco: preco, duracao: dur, gasta: document.getElementById('s-consumo').value }); 
+        save(); 
+        document.getElementById('s-nome').value = "";
+        document.getElementById('s-preco').value = "";
+        document.getElementById('s-dur').value = "";
+        updateUI(); 
+    }
+    
+    function delSer(id) {
+        if(confirm("Pretende mesmo eliminar este serviço do catálogo?")) {
+            db.servicos = db.servicos.filter(x => x.id !== id);
+            save();
+            updateUI();
+        }
+    }
+
+    function addCli() { 
+        const nome = document.getElementById('c-nome').value;
+        const tempo = parseFloat(document.getElementById('c-tempo').value) || 0;
+        if(!nome) return alert("Por favor, introduza pelo menos o nome da cliente!");
+        db.clientes.push({ id: Date.now(), nome: nome, tel: document.getElementById('c-tel').value, carga: (4/parseInt(document.getElementById('c-freq').value))*tempo }); 
+        save(); 
+        document.getElementById('c-nome').value = "";
+        document.getElementById('c-tel').value = "";
+        document.getElementById('c-tempo').value = "";
+        updateUI(); 
+    }
+    
+    function delCli(id) { if(confirm("Deseja apagar permanentemente esta ficha de cliente?")) { db.clientes = db.clientes.filter(c => c.id !== id); save(); updateUI(); } }
+    
+    function addStock() { 
+        const item = document.getElementById('st-item').value;
+        const qtd = parseInt(document.getElementById('st-qtd').value);
+        if(!item || isNaN(qtd)) return alert("Preencha o nome e quantidade do produto!");
+        db.stock.push({ id: Date.now(), item: item, qtd: qtd, min: parseInt(document.getElementById('st-min').value) || 0 }); 
+        save(); 
+        document.getElementById('st-item').value = "";
+        document.getElementById('st-qtd').value = "";
+        document.getElementById('st-min').value = "";
+        updateUI(); 
+    }
+
+    function delStock(id) { if(confirm("Remover este item do stock?")) { db.stock = db.stock.filter(x => x.id !== id); save(); updateUI(); } }
+    
+    function saveCfg() { 
+        db.config.h = parseFloat(document.getElementById('cfg-h').value) || 8; 
+        db.config.d = parseFloat(document.getElementById('cfg-d').value) || 5; 
+        db.config.msg = document.getElementById('cfg-msg').value; 
+        save(); 
+        alert("Configurações atualizadas com sucesso!"); 
+        updateUI(); 
+    }
+    
+    function removerMarcacao(id) { 
+        if(confirm("Deseja eliminar definitivamente este registo/marcação?")) { 
+            db.marcacoes = db.marcacoes.filter(x => x.id !== id); 
+            save(); 
+            updateUI(); 
+        } 
+    }
+    
     function fillDur() { let s = db.servicos.find(x => x.nome === document.getElementById('m-servico').value); if(s) document.getElementById('m-duracao').value = s.duracao; }
     function mudarMes(d) { dataCalendario.setMonth(dataCalendario.getMonth() + d); renderCalendar(); }
     function sendWpp(n, t) { window.open(`https://wa.me/351${t}?text=${encodeURIComponent(db.config.msg.replace('[NOME]',n))}`); }
-    function exportExcel() { const ws = XLSX.utils.json_to_sheet(db.marcacoes); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Backup"); XLSX.writeFile(wb, "MartaPro.xlsx"); }
+    function exportExcel() { const ws = XLSX.utils.json_to_sheet(db.marcacoes); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "BackupMartaPro"); XLSX.writeFile(wb, "MartaPro_Backup.xlsx"); }
     
     function init() {
         document.getElementById('f-mes-seletor').value = new Date().toISOString().substring(0, 7);
