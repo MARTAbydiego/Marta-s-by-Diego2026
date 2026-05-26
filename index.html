@@ -8,8 +8,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        window.firebaseAppConfig = {
+          apiKey: "AIzaSyCW-hHL5nlL58lULOfGYV0rzKfoJFVK3Xw",
+          authDomain: "marta-pro.firebaseapp.com",
+          databaseURL: "https://marta-pro-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "marta-pro",
+          storageBucket: "marta-pro.firebasestorage.app",
+          messagingSenderId: "583523831773",
+          appId: "1:583523831773:web:b695e46448ee193da33034"
+        };
+
+        const app = initializeApp(window.firebaseAppConfig);
+        window.firebaseDatabase = getDatabase(app);
+        window.firebaseRef = ref;
+        window.firebaseOnValue = onValue;
+        window.firebaseSet = set;
+        
+        // Disparar o carregamento do sistema após a inicialização do Firebase
+        window.initFirebaseSystem();
+    </script>
 
     <style>
         :root { --rosa: #ff4d79; --rosa-claro: #fff0f3; --branco: #ffffff; --cinza: #4a4a4a; --sucesso: #28a745; --erro: #dc3545; --wpp: #25d366; }
@@ -210,37 +231,46 @@
 </div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCW-hHL5nlL58lULOfGYV0rzKfoJFVK3Xw",
-      authDomain: "marta-pro.firebaseapp.com",
-      databaseURL: "https://marta-pro-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "marta-pro",
-      storageBucket: "marta-pro.firebasestorage.app",
-      messagingSenderId: "583523831773",
-      appId: "1:583523831773:web:b695e46448ee193da33034"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     let db = { clientes: [], servicos: [], marcacoes: [], stock: [], config: { h: 8, d: 5, msg: "Olá [NOME]!" } };
     let diaSelecionado = new Date().toISOString().split('T');
     let dataCalendario = new Date();
     let myChart;
 
-    database.ref('/').on('value', (snapshot) => {
-        const val = snapshot.val();
-        if(val) {
-            db.clientes = val.clientes || [];
-            db.servicos = val.servicos || [];
-            db.marcacoes = val.marcacoes || [];
-            db.stock = val.stock || [];
-            db.config = val.config || db.config;
-            updateUI();
-        }
-    });
+    // Carregar backup local imediatamente caso a nuvem demore a responder
+    if (localStorage.getItem('martapro_backup')) {
+        try { db = JSON.parse(localStorage.getItem('martapro_backup')); } catch(e){}
+    }
+
+    // Função gatilho chamada assim que o Firebase termina de carregar no topo da página
+    window.initFirebaseSystem = function() {
+        const dbRef = window.firebaseRef(window.firebaseDatabase, '/');
+        window.firebaseOnValue(dbRef, (snapshot) => {
+            const val = snapshot.val();
+            if(val) {
+                db.clientes = val.clientes || [];
+                db.servicos = val.servicos || [];
+                db.marcacoes = val.marcacoes || [];
+                db.stock = val.stock || [];
+                db.config = val.config || db.config;
+                localStorage.setItem('martapro_backup', JSON.stringify(db));
+                updateUI();
+            }
+        }, (error) => {
+            console.error("Erro na leitura do Firebase. Verifique as regras de segurança no console:", error);
+        });
+    };
 
     function checkLogin() { if(document.getElementById('passInput').value === "marta2026") { document.getElementById('login-screen').style.display = 'none'; init(); } }
-    function save() { database.ref('/').set(db); }
+    
+    function save() { 
+        localStorage.setItem('martapro_backup', JSON.stringify(db));
+        if (window.firebaseDatabase) {
+            const dbRef = window.firebaseRef(window.firebaseDatabase, '/');
+            window.firebaseSet(dbRef, db).catch(err => {
+                console.error("Erro ao gravar dados na nuvem! Verifique se as regras do Realtime Database expiraram:", err);
+            });
+        }
+    }
 
     function formatarLimpo(iso) {
         if(!iso) return "--:--";
@@ -403,10 +433,11 @@
     function mudarMes(d) { dataCalendario.setMonth(dataCalendario.getMonth() + d); renderCalendar(); }
     function sendWpp(n, t) { window.open(`https://wa.me/351${t}?text=${encodeURIComponent(db.config.msg.replace('[NOME]',n))}`); }
     function exportExcel() { const ws = XLSX.utils.json_to_sheet(db.marcacoes); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Backup"); XLSX.writeFile(wb, "MartaPro.xlsx"); }
+    
     function init() {
         document.getElementById('f-mes-seletor').value = new Date().toISOString().substring(0, 7);
         document.getElementById('txtData').innerText = new Date().toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long'});
-        document.getElementById('cfg-h').value = db.config.h; document.getElementById('cfg-d').value = db.config.d; document.getElementById('cfg-msg').value = db.config.msg;
+        document.getElementById('cfg-h').value = db.config.h || 8; document.getElementById('cfg-d').value = db.config.d || 5; document.getElementById('cfg-msg').value = db.config.msg || "Olá [NOME]!";
         updateUI();
     }
     window.addEventListener('resize', renderCalendar);
